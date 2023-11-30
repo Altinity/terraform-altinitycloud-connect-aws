@@ -4,6 +4,8 @@ Terraform module for connecting your AWS account to [Altinity.Cloud](https://alt
 If you're looking for a way to manage ClickHouse clusters via Terraform,
 see [terraform-provider-altinitycloud](https://github.com/altinity/terraform-provider-altinitycloud).
 
+## Usage
+
 ```terraform
 provider "aws" {
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs
