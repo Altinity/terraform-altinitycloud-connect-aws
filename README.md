@@ -1,7 +1,8 @@
 # terraform-altinitycloud-connect-aws
 
-Terraform module for connecting your AWS account to [Altinity.Cloud](https://altinity.cloud/anywhere).
-If you're looking for a way to manage ClickHouse clusters via Terraform, see terraform-provider-altinitycloud.
+Terraform module for connecting your AWS account to [Altinity.Cloud](https://altinity.cloud/anywhere).  
+If you're looking for a way to manage ClickHouse clusters via Terraform,
+see [terraform-provider-altinitycloud](https://github.com/altinity/terraform-provider-altinitycloud).
 
 ```terraform
 provider "aws" {
@@ -9,7 +10,8 @@ provider "aws" {
 }
 
 module "altinitycloud_connect_aws" {
-  source = "git::https://github.com/Altinity/terraform-altinitycloud-connect-aws.git?ref=master"
+  source  = "altinity/connect-aws/altinitycloud"
+  version = "0.1.0"
   
   # cloud-connect.pem is produced by `altinitycloud-connect login`.
   # See https://github.com/altinity/altinitycloud-connect for details.
