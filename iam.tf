@@ -42,14 +42,14 @@ resource "aws_iam_role" "this" {
     })
   }
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/IAMFullAccess",
-    "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
-    "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-    "arn:aws:iam::aws:policy/AmazonRoute53FullAccess",
-    "arn:aws:iam::aws:policy/AWSLambda_FullAccess",
+    "${local.arn_prefix}:iam::aws:policy/IAMFullAccess",
+    "${local.arn_prefix}:iam::aws:policy/AmazonEC2FullAccess",
+    "${local.arn_prefix}:iam::aws:policy/AmazonVPCFullAccess",
+    "${local.arn_prefix}:iam::aws:policy/AmazonS3FullAccess",
+    "${local.arn_prefix}:iam::aws:policy/AmazonRoute53FullAccess",
+    "${local.arn_prefix}:iam::aws:policy/AWSLambda_FullAccess",
     # for aws ssm start-session
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "${local.arn_prefix}:iam::aws:policy/AmazonSSMManagedInstanceCore",
   ]
 }
 
@@ -68,7 +68,7 @@ resource "aws_iam_role" "altinity_break_glass" {
       {
         Effect = "Allow",
         Principal = {
-          AWS = var.break_glass_principal
+          AWS = local.break_glass_principal
         },
         Action = "sts:AssumeRole"
       }
@@ -82,7 +82,7 @@ resource "aws_iam_role" "altinity_break_glass" {
         {
           Effect   = "Allow",
           Action   = "ssm:StartSession",
-          Resource = "arn:aws:ec2:*:*:instance/*",
+          Resource = "${local.arn_prefix}:ec2:*:*:instance/*",
           Condition = {
             StringEquals = {
               "ssm:resourceTag/terraform:altinity:cloud/instance-group" = local.name
@@ -92,7 +92,7 @@ resource "aws_iam_role" "altinity_break_glass" {
         {
           Effect   = "Allow",
           Action   = "ssm:StartSession",
-          Resource = "arn:aws:ssm:*:*:document/AWS-StartSSHSession"
+          Resource = "${local.arn_prefix}:ssm:*:*:document/AWS-StartSSHSession"
         }
       ]
     })

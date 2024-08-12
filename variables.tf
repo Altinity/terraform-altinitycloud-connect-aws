@@ -79,7 +79,7 @@ variable "allow_altinity_access" {
 
 variable "break_glass_principal" {
   type    = string
-  default = "arn:aws:iam::313342380333:role/AnywhereAdmin"
+  default = ""
 }
 
 variable "tags" {
@@ -92,4 +92,10 @@ variable "ami_name" {
   description = "The name of the AMI to use for the EC2 instance."
   type        = string
   default     = ""
+}
+
+variable "container_registry" {
+  description = "name of the container registry"
+  type        = string
+  default     = "value"
 }
