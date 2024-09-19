@@ -1,3 +1,5 @@
+data "aws_partition" "current" {}
+
 resource "aws_iam_role" "this" {
   name        = "${local.name}-instance"
   description = "Role assumed by EC2 instance(s) running altinity/cloud-connect"
@@ -42,14 +44,14 @@ resource "aws_iam_role" "this" {
     })
   }
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/IAMFullAccess",
-    "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
-    "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-    "arn:aws:iam::aws:policy/AmazonRoute53FullAccess",
-    "arn:aws:iam::aws:policy/AWSLambda_FullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/IAMFullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonEC2FullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonVPCFullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonS3FullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonRoute53FullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSLambda_FullAccess",
     # for aws ssm start-session
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
   ]
 }
 
@@ -82,7 +84,7 @@ resource "aws_iam_role" "altinity_break_glass" {
         {
           Effect   = "Allow",
           Action   = "ssm:StartSession",
-          Resource = "arn:aws:ec2:*:*:instance/*",
+          Resource = "arn:${data.aws_partition.current.partition}:ec2:*:*:instance/*",
           Condition = {
             StringEquals = {
               "ssm:resourceTag/terraform:altinity:cloud/instance-group" = local.name
@@ -92,7 +94,7 @@ resource "aws_iam_role" "altinity_break_glass" {
         {
           Effect   = "Allow",
           Action   = "ssm:StartSession",
-          Resource = "arn:aws:ssm:*:*:document/AWS-StartSSHSession"
+          Resource = "arn:${data.aws_partition.current.partition}:ssm:*:*:document/AWS-StartSSHSession"
         }
       ]
     })
