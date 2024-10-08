@@ -6,7 +6,7 @@ variable "url" {
 variable "image" {
   description = "Custom Docker image (defaults to altinity/cloud-connect:$version)."
   type        = string
-  default     = "altinity/cloud-connect:0.20.0@sha256:1172a82a03f27567b517a2fdbc3079f91ee4ab2124c7d6ec95d0c0c6c34db78f"
+  default     = "altinity/cloud-connect:0.88.0"
 }
 
 variable "pem" {
