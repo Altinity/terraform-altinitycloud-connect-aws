@@ -39,6 +39,18 @@ resource "aws_iam_role" "this" {
           Effect   = "Allow",
           Action   = "ssm:GetParameter",
           Resource = var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].arn : aws_ssm_parameter.this[0].arn
+        },
+        {
+          Effect = "Allow",
+          Action = [
+            "kafka:CreateVpcConnection",
+            "kafka:GetBootstrapBrokers",
+            "kafka:DescribeCluster",
+            "kafka:DescribeClusterV2",
+            "kafka:ListVpcConnections",
+            "kafka:DeleteVpcConnection"
+          ],
+          Resource = "*"
         }
       ]
     })
