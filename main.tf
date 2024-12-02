@@ -1,5 +1,14 @@
 locals {
   ami_name = var.ami_name != "" ? var.ami_name : "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}"
+
+  name = "altinitycloud-connect-${random_id.this.hex}"
+  tags = merge(var.tags, {
+    Name = local.name
+  })
+}
+
+resource "random_id" "this" {
+  byte_length = 7
 }
 
 data "aws_region" "current" {}
