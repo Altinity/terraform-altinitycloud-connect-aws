@@ -40,6 +40,12 @@ EOT
   default     = []
 }
 
+variable "cidr_block" {
+  description = "The CIDR block for the VPC."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 variable "map_public_ip_on_launch" {
   type    = bool
   default = true
