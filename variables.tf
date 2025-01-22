@@ -99,3 +99,9 @@ variable "ami_name" {
   type        = string
   default     = ""
 }
+
+variable "ec2_security_group_ids" {
+  type    = list(string)
+  default = []
+  description = "List of security group IDs to attach. If empty, the default SG is used."
+}

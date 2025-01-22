@@ -61,6 +61,8 @@ resource "aws_launch_template" "this" {
   network_interfaces {
     associate_public_ip_address = var.map_public_ip_on_launch
   }
+
+  vpc_security_group_ids = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
@@ -104,6 +106,7 @@ resource "aws_autoscaling_group" "this" {
     heartbeat_timeout    = "420" // 8m
     default_result       = "ABANDON"
   }
+
   wait_for_capacity_timeout = "7m"
   vpc_zone_identifier = length(var.subnets) > 0 ? var.subnets : (
     var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this.*.id
