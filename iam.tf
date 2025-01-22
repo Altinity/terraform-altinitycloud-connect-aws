@@ -122,7 +122,7 @@ resource "aws_iam_role_policy" "altinity_break_glass_policy" {
       {
         Effect   = "Allow",
         Action   = "ssm:StartSession",
-        Resource = "arn:${data.aws_partition.current.partition}:ssm:*:*:document/AWS-StartSSHSession"
+        Resource = "arn:${data.aws_partition.current.partition}:ssm:*:*:document/SSM-SessionManagerRunShell"
       }
     ]
   })
