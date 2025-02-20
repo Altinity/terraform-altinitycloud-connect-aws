@@ -49,7 +49,7 @@ data "aws_availability_zones" "available" {
 resource "aws_subnet" "this" {
   count                   = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
   vpc_id                  = aws_vpc.this[0].id
-  cidr_block              = "10.0.${count.index + 1}.0/24"
+  cidr_block              = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 8, count.index + 1) : cidrsubnet(var.cidr_block, 2, count.index + 1)
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available[0].names[count.index]
   tags = merge(local.tags, {
