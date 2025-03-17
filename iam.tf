@@ -1,3 +1,5 @@
+
+
 locals {
   managed_policies = [
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/IAMFullAccess",
@@ -15,6 +17,8 @@ data "aws_partition" "current" {}
 resource "aws_iam_role" "this" {
   name        = "${local.name}-instance"
   description = "Role assumed by EC2 instance(s) running altinity/cloud-connect"
+
+  permissions_boundary = var.permissions_boundary
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -32,6 +36,7 @@ resource "aws_iam_role" "this" {
 resource "aws_iam_role_policy" "this" {
   name = "${aws_iam_role.this.name}-policy"
   role = aws_iam_role.this.id
+
 
   policy = jsonencode({
     Version = "2012-10-17",

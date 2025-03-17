@@ -43,7 +43,17 @@ resource "aws_ssm_parameter" "this" {
   name  = "${local.name}-secret"
   type  = "String"
   value = var.pem
-  tier  = "Advanced" # value is over 4kb
+  tier  = "Intelligent-Tiering"
+  tags = local.tags
+}
+
+resource "aws_ssm_parameter" "ca_crt" {
+  count = var.ca_crt != "" ? 1 : 0
+  name  = "${local.name}-ca-pem"
+  type  = "String"
+  value = var.ca_crt
+  tier  = "Intelligent-Tiering"
+  tags = local.tags
 }
 
 data "aws_ssm_parameter" "this" {
@@ -77,11 +87,14 @@ resource "aws_launch_template" "this" {
       image              = var.image,
       ssm_parameter_name = var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].name : aws_ssm_parameter.this[0].name
       url                = var.url
+      ca_crt_ssm_parameter_name = var.ca_crt != "" ? aws_ssm_parameter.ca_crt[0].name : ""
+      host_aliases        = var.host_aliases
 
       asg_name      = local.name
       asg_hook_name = "launch"
     })
   )
+
   tag_specifications {
     resource_type = "instance"
     tags = merge(local.tags, {
@@ -98,13 +111,17 @@ resource "aws_autoscaling_group" "this" {
   max_size         = 3
   launch_template {
     id      = aws_launch_template.this.id
-    version = "$Latest"
+    version = aws_launch_template.this.latest_version
   }
   initial_lifecycle_hook {
     name                 = "launch"
     lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
-    heartbeat_timeout    = "420" // 8m
+    heartbeat_timeout    = "420"
     default_result       = "ABANDON"
+  }
+
+  instance_refresh {
+    strategy = "Rolling"
   }
 
   wait_for_capacity_timeout = "7m"
