@@ -4,14 +4,35 @@ locals {
   name = "altinitycloud-connect-${random_id.this.hex}"
   tags = merge(var.tags, {
     Name = local.name
+    "altinity:cloud/env" = var.env_name
   })
+}
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
+locals {
+  region = var.region != "" ? var.region : data.aws_region.current.name
+  account_id = var.aws_account_id != "" ? var.aws_account_id : data.aws_caller_identity.current.account_id
 }
 
 resource "random_id" "this" {
   byte_length = 7
 }
 
-data "aws_region" "current" {}
+resource "random_string" "resource_suffix" {
+  count       = var.permission_boundary ? 1 : 0
+  length  = 8
+  special = false
+  upper   = false
+}
+
+locals {
+  env_prefix_base = length(var.env_name) > 8 ? "${substr(var.env_name, 0, 4)}${substr(var.env_name, length(var.env_name) - 4, 4)}" : var.env_name
+  resource_prefix =  var.permission_boundary ? "${local.env_prefix_base}-${one(random_string.resource_suffix).result}" : null
+  permission_boundary_policy_name = var.permission_boundary ? "${var.env_name}-boundary" : null
+}
 
 data "aws_ec2_instance_type" "current" {
   instance_type = var.instance_type

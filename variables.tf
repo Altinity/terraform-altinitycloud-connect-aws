@@ -120,8 +120,25 @@ variable "ec2_security_group_ids" {
   description = "List of security group IDs to attach. If empty, the default SG is used."
 }
 
-variable "permissions_boundary" {
+variable "permission_boundary" {
+  type        = bool
+  description = "Enable permission boundary for the IAM role."
+  default     = false
+}
+
+variable "env_name" {
   type        = string
-  description = "The IAM permissions boundary to attach to the IAM role."
-  default     = ""
+  description = "Environment name"
+}
+
+variable "region" {
+  type        = string
+  description = "AWS region"
+  default = ""
+}
+
+variable "aws_account_id" {
+  type        = string
+  description = "AWS account ID"
+  default = ""
 }
