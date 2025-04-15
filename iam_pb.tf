@@ -132,7 +132,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     }
   }
 
-  # https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazoneksauth.html#amazoneksauth-cluster
   statement {
     sid = "EKSPodIdentity"
 
@@ -155,7 +154,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     resources = [
       "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
     ]
-
   }
 
   statement {
@@ -250,7 +248,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
   }
 
-
   statement {
     sid = "S3"
 
@@ -273,8 +270,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
   }
 
-  // Not possible to condition
-  // See https://repost.aws/questions/QUbx7pdp-qTWWOiUb-WtEhFQ/resource-handler-returned-message-the-provided-execution-role-does-not-have-permissions-to-call-createnetworkinterface-on-ec2-service-lambda-status-code-400
+  // Not possible to set boundary until EKS lambda is replaced
   statement {
     sid = "LambdaNetworkInterface"
 
@@ -285,7 +281,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     resources = ["*"]
   }
-
 
   statement {
     sid = "EnvAssumeAndPassCreatedRoles"
@@ -301,7 +296,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
   }
 
-
   statement {
     sid = "EnvIAMEntities"
 
@@ -316,7 +310,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "arn:aws:iam::${local.account_id}:policy/${local.resource_prefix}-*",
     ]
   }
-
 
   statement {
     sid = "RequirePermissionBoundaryForCreatedRoles"
