@@ -22,13 +22,13 @@ mkdir -p /etc/altinitycloud
 
 aws ssm get-parameter --name "${ssm_parameter_name}" --with-decryption --query "Parameter.Value" --output text > /etc/altinitycloud/cloud-connect.pem
 
-%{ if ca_crt_ssm_parameter_name != "" }
-aws ssm get-parameter --name "${ca_crt_ssm_parameter_name}" --with-decryption --query "Parameter.Value" --output text > /etc/altinitycloud/ca.pem
+%{ if ca_crt != "" }
+echo "${ca_crt}" > /etc/altinitycloud/ca.pem
 %{ endif }
 
 docker run -d --name=altinitycloud-connect --restart=always -v /etc/altinitycloud:/etc/altinitycloud:rw --network=host \
   %{ for host, alias in host_aliases } --add-host="${host}:${alias}" %{ endfor } "${image}" \
-  --url=${url} -i /etc/altinitycloud/cloud-connect.pem %{ if ca_crt_ssm_parameter_name != "" } --ca-crt=/etc/altinitycloud/ca.pem %{ endif } \
+  --url=${url} -i /etc/altinitycloud/cloud-connect.pem %{ if ca_crt != "" } --ca-crt=/etc/altinitycloud/ca.pem %{ endif } \
   --capability aws
 
 

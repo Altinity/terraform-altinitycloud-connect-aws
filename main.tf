@@ -77,14 +77,6 @@ resource "aws_ssm_parameter" "this" {
   tags  = local.tags
 }
 
-resource "aws_ssm_parameter" "ca_crt" {
-  count = var.ca_crt != "" ? 1 : 0
-  name  = "${local.name}-ca-pem"
-  type  = "String"
-  value = var.ca_crt
-  tier  = "Intelligent-Tiering"
-  tags  = local.tags
-}
 
 locals {
   resource_prefix_base = (length(local.env_name) > 8 ?
@@ -120,10 +112,9 @@ resource "aws_launch_template" "this" {
       image = var.image,
       ssm_parameter_name = (var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].name :
       aws_ssm_parameter.this[0].name)
-      url                       = var.url
-      ca_crt_ssm_parameter_name = var.ca_crt != "" ? aws_ssm_parameter.ca_crt[0].name : ""
-      host_aliases              = var.host_aliases
-
+      url           = var.url
+      ca_crt        = var.ca_crt
+      host_aliases  = var.host_aliases
       asg_name      = local.name
       asg_hook_name = "launch"
     })
