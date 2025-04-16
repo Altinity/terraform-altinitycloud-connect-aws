@@ -129,7 +129,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     actions = [
       "eks:DescribeCluster"
     ]
-
     resources = [
       "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
     ]
