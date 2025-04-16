@@ -1,5 +1,3 @@
-
-
 data "aws_iam_policy_document" "perm-boundary-policy" {
   count = var.permission_boundary ? 1 : 0
 
@@ -53,7 +51,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringEquals"
-      values = [var.env_name]
+      values   = [local.env_name]
       variable = "aws:RequestTag/altinity:cloud/env"
     }
   }
@@ -71,7 +69,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringNotEquals"
-      values = [var.env_name]
+      values   = [local.env_name]
       variable = "aws:ResourceTag/altinity:cloud/env"
     }
   }
@@ -86,7 +84,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     resources = ["*"]
 
     condition {
-      test     = "ForAnyValue:StringEquals"
+      test = "ForAnyValue:StringEquals"
       values = [
         "CreateVpc",
         "CreateInternetGateway",
@@ -127,7 +125,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringEquals"
-      values = [var.env_name]
+      values   = [local.env_name]
       variable = "aws:ResourceTag/altinity:cloud/env"
     }
   }
@@ -166,7 +164,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringEquals"
-      values = ["amazon"]
+      values   = ["amazon"]
       variable = "ec2:Owner"
     }
   }
@@ -215,7 +213,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringEquals"
-      values = [local.resource_prefix]
+      values   = [local.resource_prefix]
       variable = "aws:ResourceTag/eks:cluster-name"
     }
   }
@@ -231,7 +229,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
     condition {
       test     = "ForAnyValue:StringEquals"
-      values = [local.resource_prefix]
+      values   = [local.resource_prefix]
       variable = "aws:ResourceTag/aws:eks:cluster-name"
     }
   }
@@ -255,7 +253,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "s3:*",
     ]
 
-    resources = ["arn:aws:s3:::${local.resource_prefix}-*"]
+    resources = ["arn:aws:s3:::${local.resource_prefix}*"]
   }
 
   statement {
@@ -266,7 +264,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
 
     resources = [
-      "arn:aws:lambda:${local.region}:${local.account_id}:function:${local.resource_prefix}-*"
+      "arn:aws:lambda:${local.region}:${local.account_id}:function:${local.resource_prefix}*"
     ]
   }
 
@@ -292,7 +290,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
 
     resources = [
-      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}-*"
+      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
     ]
   }
 
@@ -304,10 +302,10 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     ]
 
     resources = [
-      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}-*",
-      "arn:aws:iam::${local.account_id}:user/${local.resource_prefix}-*",
-      "arn:aws:iam::${local.account_id}:instance-profile/${local.resource_prefix}-*",
-      "arn:aws:iam::${local.account_id}:policy/${local.resource_prefix}-*",
+      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*",
+      "arn:aws:iam::${local.account_id}:user/${local.resource_prefix}*",
+      "arn:aws:iam::${local.account_id}:instance-profile/${local.resource_prefix}*",
+      "arn:aws:iam::${local.account_id}:policy/${local.resource_prefix}*",
     ]
   }
 
@@ -321,7 +319,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "iam:PutRolePolicy",
     ]
     resources = [
-      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}-*"
+      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
     ]
     condition {
       test     = "StringEquals"
@@ -368,9 +366,8 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 }
 
 resource "aws_iam_policy" "altinity-permission-boundary" {
-  count = var.permission_boundary ? 1 : 0
-  name   = local.permission_boundary_policy_name
-  description = "Altinity permission boundary for env ${var.env_name}"
-  policy = one(data.aws_iam_policy_document.perm-boundary-policy).json
+  count       = var.permission_boundary ? 1 : 0
+  name        = local.permission_boundary_policy_name
+  description = "Altinity permission boundary for env ${local.env_name}"
+  policy      = one(data.aws_iam_policy_document.perm-boundary-policy).json
 }
-

@@ -11,6 +11,8 @@ provider "aws" {
   # https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 }
 
+
+
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
   version = "0.1.0"

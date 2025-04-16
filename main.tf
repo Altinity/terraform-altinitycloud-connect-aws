@@ -1,11 +1,26 @@
+data "aws_ssm_parameter" "this" {
+  count = var.pem_ssm_parameter_name != "" ? 1 : 0
+  name  = var.pem_ssm_parameter_name
+}
+
+data "tls_certificate" "env_pem" {
+  content = var.pem_ssm_parameter_name != "" ? one(data.aws_ssm_parameter.this).value : var.pem
+}
+
 locals {
-  ami_name = var.ami_name != "" ? var.ami_name : "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}"
+  env_name = regex("CN=([^,]+)", data.tls_certificate.env_pem.certificates[0].subject)[0]
+  ami_name = (var.ami_name != "" ? var.ami_name :
+  "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
 
   name = "altinitycloud-connect-${random_id.this.hex}"
   tags = merge(var.tags, {
-    Name = local.name
-    "altinity:cloud/env" = var.env_name
+    Name                 = local.name
+    "altinity:cloud/env" = local.env_name
   })
+}
+
+output "env_name" {
+  value = local.env_name
 }
 
 data "aws_region" "current" {}
@@ -13,7 +28,7 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  region = var.region != "" ? var.region : data.aws_region.current.name
+  region     = var.region != "" ? var.region : data.aws_region.current.name
   account_id = var.aws_account_id != "" ? var.aws_account_id : data.aws_caller_identity.current.account_id
 }
 
@@ -21,17 +36,11 @@ resource "random_id" "this" {
   byte_length = 7
 }
 
-resource "random_string" "resource_suffix" {
-  count       = var.permission_boundary ? 1 : 0
+resource "random_string" "resource_prefix" {
+  count   = var.permission_boundary ? 1 : 0
   length  = 8
   special = false
   upper   = false
-}
-
-locals {
-  env_prefix_base = length(var.env_name) > 8 ? "${substr(var.env_name, 0, 4)}${substr(var.env_name, length(var.env_name) - 4, 4)}" : var.env_name
-  resource_prefix =  var.permission_boundary ? "${local.env_prefix_base}-${one(random_string.resource_suffix).result}" : null
-  permission_boundary_policy_name = var.permission_boundary ? "${var.env_name}-boundary" : null
 }
 
 data "aws_ec2_instance_type" "current" {
@@ -65,7 +74,7 @@ resource "aws_ssm_parameter" "this" {
   type  = "String"
   value = var.pem
   tier  = "Intelligent-Tiering"
-  tags = local.tags
+  tags  = local.tags
 }
 
 resource "aws_ssm_parameter" "ca_crt" {
@@ -74,12 +83,15 @@ resource "aws_ssm_parameter" "ca_crt" {
   type  = "String"
   value = var.ca_crt
   tier  = "Intelligent-Tiering"
-  tags = local.tags
+  tags  = local.tags
 }
 
-data "aws_ssm_parameter" "this" {
-  count = var.pem_ssm_parameter_name != "" ? 1 : 0
-  name  = var.pem_ssm_parameter_name
+locals {
+  resource_prefix_base = (length(local.env_name) > 8 ?
+  "${substr(local.env_name, 0, 4)}${substr(local.env_name, length(local.env_name) - 4, 4)}" : local.env_name)
+  resource_prefix = (var.permission_boundary ?
+  "${local.resource_prefix_base}-${one(random_string.resource_prefix).result}" : null)
+  permission_boundary_policy_name = var.permission_boundary ? "${local.env_name}-boundary" : null
 }
 
 resource "aws_launch_template" "this" {
@@ -105,11 +117,12 @@ resource "aws_launch_template" "this" {
   }
   user_data = base64encode(
     templatefile("${path.module}/user-data.sh.tpl", {
-      image              = var.image,
-      ssm_parameter_name = var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].name : aws_ssm_parameter.this[0].name
-      url                = var.url
+      image = var.image,
+      ssm_parameter_name = (var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].name :
+      aws_ssm_parameter.this[0].name)
+      url                       = var.url
       ca_crt_ssm_parameter_name = var.ca_crt != "" ? aws_ssm_parameter.ca_crt[0].name : ""
-      host_aliases        = var.host_aliases
+      host_aliases              = var.host_aliases
 
       asg_name      = local.name
       asg_hook_name = "launch"
@@ -154,9 +167,9 @@ resource "aws_autoscaling_group" "this" {
     for_each = local.tags
 
     content {
-      key    =  tag.key
-      value   =  tag.value
-      propagate_at_launch =  true
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
     }
   }
 }

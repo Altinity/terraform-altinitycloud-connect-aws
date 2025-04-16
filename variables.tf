@@ -115,8 +115,8 @@ variable "ami_name" {
 }
 
 variable "ec2_security_group_ids" {
-  type    = list(string)
-  default = []
+  type        = list(string)
+  default     = []
   description = "List of security group IDs to attach. If empty, the default SG is used."
 }
 
@@ -126,19 +126,14 @@ variable "permission_boundary" {
   default     = false
 }
 
-variable "env_name" {
-  type        = string
-  description = "Environment name"
-}
-
 variable "region" {
   type        = string
   description = "AWS region"
-  default = ""
+  default     = ""
 }
 
 variable "aws_account_id" {
   type        = string
   description = "AWS account ID"
-  default = ""
+  default     = ""
 }
