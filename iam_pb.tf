@@ -9,26 +9,22 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "elasticloadbalancing:Describe*",
       "route53:ListHostedZonesByVPC"
     ]
-
     resources = ["*"]
   }
 
   statement {
     sid = "MessageGatewayServiceInRegion"
-
     actions = [
       "ssmmessages:CreateControlChannel",
       "ssmmessages:CreateDataChannel",
       "ssmmessages:OpenControlChannel",
       "ssmmessages:OpenDataChannel",
     ]
-
     resources = ["*"]
   }
 
   statement {
     sid = "EnvRequestTagBasedAccess"
-
     actions = [
       "ec2:CreateVpc",
       "ec2:CreateInternetGateway",
@@ -46,9 +42,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "ec2:CreateVpcEndpointServiceConfiguration",
       "ec2:CreateVpcPeeringConnection",
     ]
-
     resources = ["*"]
-
     condition {
       test     = "ForAnyValue:StringEquals"
       values   = [local.env_name]
@@ -58,15 +52,11 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     effect = "Deny"
-
-    sid = "DenyTagsModificationOnNonManagedResources"
-
+    sid    = "DenyTagsModificationOnNonManagedResources"
     actions = [
       "ec2:CreateTags",
     ]
-
     resources = ["*"]
-
     condition {
       test     = "ForAnyValue:StringNotEquals"
       values   = [local.env_name]
@@ -76,13 +66,10 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EnvCreateRequestTagBasedAccess"
-
     actions = [
       "ec2:CreateTags",
     ]
-
     resources = ["*"]
-
     condition {
       test = "ForAnyValue:StringEquals"
       values = [
@@ -100,7 +87,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
         "AllocateAddress",
         "CreateNatGateway",
         "CreateVpcEndpointServiceConfiguration",
-        "CreateVpcPeeringConnection",
+        "CreateVpcPeeringConnection"
       ]
       variable = "ec2:CreateAction"
     }
@@ -109,7 +96,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EnvResourceTagBasedAccess"
-
     actions = [
       "ssm:*",
       "ec2:*",
@@ -118,11 +104,9 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "ssm:*",
       "lambda:*",
       "autoscaling:*",
-      "elasticloadbalancing:*",
+      "elasticloadbalancing:*"
     ]
-
     resources = ["*"]
-
     condition {
       test     = "ForAnyValue:StringEquals"
       values   = [local.env_name]
@@ -132,11 +116,9 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSPodIdentity"
-
     actions = [
-      "eks-auth:AssumeRoleForPodIdentity",
+      "eks-auth:AssumeRoleForPodIdentity"
     ]
-
     resources = [
       "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
     ]
@@ -144,9 +126,8 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSDescribeCluster"
-
     actions = [
-      "eks:DescribeCluster",
+      "eks:DescribeCluster"
     ]
 
     resources = [
@@ -156,12 +137,10 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSNodePoolsAMIs"
-
     actions = [
-      "ec2:RunInstances",
+      "ec2:RunInstances"
     ]
     resources = ["arn:aws:ec2:${local.region}::image/ami-*"]
-
     condition {
       test     = "ForAnyValue:StringEquals"
       values   = ["amazon"]
@@ -171,14 +150,12 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSNodesImages"
-
     actions = [
       "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
       "ecr:BatchGetImage",
     ]
-
     resources = ["*"]
   }
 
@@ -187,30 +164,24 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     actions = [
       "iam:GetOpenIDConnectProvider",
     ]
-
     resources = ["arn:aws:iam::${local.account_id}:oidc-provider/oidc.eks.${local.region}.amazonaws.com/id/*"]
   }
 
   statement {
     sid = "EKSNodeGroups"
-
     actions = [
       "eks:DescribeNodegroup",
     ]
-
     resources = ["arn:aws:eks:${local.region}:${local.account_id}:nodegroup/${local.resource_prefix}/*"]
   }
 
   statement {
     sid = "EKSAutoscalingGroups"
-
     actions = [
       "autoscaling:DescribeAutoScalingGroups",
       "autoscaling:CreateOrUpdateTags",
     ]
-
     resources = ["*"]
-
     condition {
       test     = "ForAnyValue:StringEquals"
       values   = [local.resource_prefix]
@@ -220,13 +191,10 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSTagSecurityGroup"
-
     actions = [
       "ec2:CreateTags"
     ]
-
     resources = ["arn:aws:ec2:${local.region}:${local.account_id}:security-group/*"]
-
     condition {
       test     = "ForAnyValue:StringEquals"
       values   = [local.resource_prefix]
@@ -236,11 +204,9 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EKSIAMRole"
-
     actions = [
       "iam:GetRole",
     ]
-
     resources = [
       "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup"
     ]
@@ -248,21 +214,17 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "S3"
-
     actions = [
       "s3:*",
     ]
-
     resources = ["arn:aws:s3:::${local.resource_prefix}*"]
   }
 
   statement {
     sid = "Lambda"
-
     actions = [
       "lambda:*",
     ]
-
     resources = [
       "arn:aws:lambda:${local.region}:${local.account_id}:function:${local.resource_prefix}*"
     ]
@@ -271,24 +233,20 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
   // Not possible to set boundary until EKS lambda is replaced
   statement {
     sid = "LambdaNetworkInterface"
-
     actions = [
       "ec2:CreateNetworkInterface",
       "ec2:DeleteNetworkInterface",
     ]
-
     resources = ["*"]
   }
 
   statement {
     sid = "EnvAssumeAndPassCreatedRoles"
-
     actions = [
       "sts:AssumeRole",
       "sts:AssumeRoleWithWebIdentity",
       "iam:PassRole",
     ]
-
     resources = [
       "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
     ]
@@ -296,11 +254,9 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "EnvIAMEntities"
-
     actions = [
       "iam:*"
     ]
-
     resources = [
       "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*",
       "arn:aws:iam::${local.account_id}:user/${local.resource_prefix}*",
@@ -311,7 +267,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   statement {
     sid = "RequirePermissionBoundaryForCreatedRoles"
-
     actions = [
       "iam:CreateRole",
       "iam:AttachRolePolicy",
@@ -324,7 +279,6 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
     condition {
       test     = "StringEquals"
       variable = "iam:PermissionsBoundary"
-
       values = [
         "arn:aws:iam::${local.account_id}:policy/${local.permission_boundary_policy_name}"
       ]
@@ -332,17 +286,14 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
   }
 
   statement {
-    sid = "DenyPermissionBoundaryChanges"
-
+    sid    = "DenyPermissionBoundaryChanges"
     effect = "Deny"
-
     actions = [
       "iam:CreatePolicyVersion",
       "iam:DeletePolicy",
       "iam:DeletePolicyVersion",
       "iam:SetDefaultPolicyVersion"
     ]
-
     resources = [
       "arn:aws:iam::${local.account_id}:policy/${local.permission_boundary_policy_name}"
     ]
@@ -350,14 +301,11 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 
   dynamic "statement" {
     for_each = var.allow_altinity_access ? [1] : []
-
     content {
       sid = "BreakGlass"
-
       actions = [
         "ssm:StartSession",
       ]
-
       resources = [
         "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
       ]

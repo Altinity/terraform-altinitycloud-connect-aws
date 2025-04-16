@@ -7,27 +7,19 @@ data "tls_certificate" "env_pem" {
   content = var.pem_ssm_parameter_name != "" ? one(data.aws_ssm_parameter.this).value : var.pem
 }
 
-locals {
-  env_name = regex("CN=([^,]+)", data.tls_certificate.env_pem.certificates[0].subject)[0]
-  ami_name = (var.ami_name != "" ? var.ami_name :
-  "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
-
-  name = "altinitycloud-connect-${random_id.this.hex}"
-  tags = merge(var.tags, {
-    Name                 = local.name
-    "altinity:cloud/env" = local.env_name
-  })
-}
-
-output "env_name" {
-  value = local.env_name
-}
-
 data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
 locals {
+  env_name = regex("CN=([^,]+)", data.tls_certificate.env_pem.certificates[0].subject)[0]
+  ami_name = (var.ami_name != "" ? var.ami_name :
+  "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
+  name = "altinitycloud-connect-${random_id.this.hex}"
+  tags = merge(var.tags, {
+    Name                 = local.name
+    "altinity:cloud/env" = local.env_name
+  })
   region     = var.region != "" ? var.region : data.aws_region.current.name
   account_id = var.aws_account_id != "" ? var.aws_account_id : data.aws_caller_identity.current.account_id
 }
@@ -96,7 +88,6 @@ resource "aws_launch_template" "this" {
   network_interfaces {
     associate_public_ip_address = var.map_public_ip_on_launch
   }
-
   vpc_security_group_ids = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -119,7 +110,6 @@ resource "aws_launch_template" "this" {
       asg_hook_name = "launch"
     })
   )
-
   tag_specifications {
     resource_type = "instance"
     tags = merge(local.tags, {
@@ -156,7 +146,6 @@ resource "aws_autoscaling_group" "this" {
 
   dynamic "tag" {
     for_each = local.tags
-
     content {
       key                 = tag.key
       value               = tag.value
