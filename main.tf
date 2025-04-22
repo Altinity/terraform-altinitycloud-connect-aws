@@ -29,7 +29,7 @@ resource "random_id" "this" {
 }
 
 resource "random_string" "resource_prefix" {
-  count   = var.permission_boundary ? 1 : 0
+  count   = var.enable_permissions_boundary ? 1 : 0
   length  = 8
   special = false
   upper   = false
@@ -73,9 +73,9 @@ resource "aws_ssm_parameter" "this" {
 locals {
   resource_prefix_base = (length(local.env_name) > 8 ?
   "${substr(local.env_name, 0, 4)}${substr(local.env_name, length(local.env_name) - 4, 4)}" : local.env_name)
-  resource_prefix = (var.permission_boundary ?
+  resource_prefix = (var.enable_permissions_boundary ?
   "${local.resource_prefix_base}-${one(random_string.resource_prefix).result}" : null)
-  permission_boundary_policy_name = var.permission_boundary ? "${local.env_name}-boundary" : null
+  permissions_boundary_policy_name = var.enable_permissions_boundary ? "${local.env_name}-boundary" : null
 }
 
 resource "aws_launch_template" "this" {

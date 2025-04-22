@@ -120,9 +120,9 @@ variable "ec2_security_group_ids" {
   description = "List of security group IDs to attach. If empty, the default SG is used."
 }
 
-variable "permission_boundary" {
+variable "enable_permissions_boundary" {
   type        = bool
-  description = "Enable permission boundary for the IAM role."
+  description = "Enable permissions boundary for the IAM role."
   default     = false
 }
 

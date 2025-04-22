@@ -1,5 +1,5 @@
-data "aws_iam_policy_document" "perm-boundary-policy" {
-  count = var.permission_boundary ? 1 : 0
+data "aws_iam_policy_document" "permissions-boundary-policy" {
+  count = var.enable_permissions_boundary ? 1 : 0
 
   statement {
     sid = "DescribeResourcesInRegion"
@@ -279,7 +279,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       test     = "StringEquals"
       variable = "iam:PermissionsBoundary"
       values = [
-        "arn:aws:iam::${local.account_id}:policy/${local.permission_boundary_policy_name}"
+        "arn:aws:iam::${local.account_id}:policy/${local.permissions_boundary_policy_name}"
       ]
     }
   }
@@ -294,7 +294,7 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
       "iam:SetDefaultPolicyVersion"
     ]
     resources = [
-      "arn:aws:iam::${local.account_id}:policy/${local.permission_boundary_policy_name}"
+      "arn:aws:iam::${local.account_id}:policy/${local.permissions_boundary_policy_name}"
     ]
   }
 
@@ -313,8 +313,8 @@ data "aws_iam_policy_document" "perm-boundary-policy" {
 }
 
 resource "aws_iam_policy" "altinity-permission-boundary" {
-  count       = var.permission_boundary ? 1 : 0
-  name        = local.permission_boundary_policy_name
+  count       = var.enable_permissions_boundary ? 1 : 0
+  name        = local.permissions_boundary_policy_name
   description = "Altinity permission boundary for env ${local.env_name}"
-  policy      = one(data.aws_iam_policy_document.perm-boundary-policy).json
+  policy      = one(data.aws_iam_policy_document.permissions-boundary-policy).json
 }

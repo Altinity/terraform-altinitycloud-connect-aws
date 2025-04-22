@@ -15,7 +15,7 @@ data "aws_partition" "current" {}
 resource "aws_iam_role" "this" {
   name                 = "${local.name}-instance"
   description          = "Role assumed by EC2 instance(s) running altinity/cloud-connect"
-  permissions_boundary = var.permission_boundary ? one(aws_iam_policy.altinity-permission-boundary).arn : null
+  permissions_boundary = var.enable_permissions_boundary ? one(aws_iam_policy.altinity-permission-boundary).arn : null
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
