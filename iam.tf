@@ -13,8 +13,9 @@ locals {
 data "aws_partition" "current" {}
 
 resource "aws_iam_role" "this" {
-  name        = "${local.name}-instance"
-  description = "Role assumed by EC2 instance(s) running altinity/cloud-connect"
+  name                 = "${local.name}-instance"
+  description          = "Role assumed by EC2 instance(s) running altinity/cloud-connect"
+  permissions_boundary = var.enable_permissions_boundary ? one(aws_iam_policy.altinity-permission-boundary).arn : null
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -32,7 +33,6 @@ resource "aws_iam_role" "this" {
 resource "aws_iam_role_policy" "this" {
   name = "${aws_iam_role.this.name}-policy"
   role = aws_iam_role.this.id
-
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -105,9 +105,8 @@ resource "aws_iam_role_policy" "altinity_break_glass_policy" {
   count = var.allow_altinity_access ? 1 : 0
   name  = "${aws_iam_role.altinity_break_glass[count.index].name}-policy"
   role  = aws_iam_role.altinity_break_glass[count.index].id
-
   policy = jsonencode({
-    Version   = "2012-10-17",
+    Version = "2012-10-17",
     Statement = [
       {
         Effect   = "Allow",
