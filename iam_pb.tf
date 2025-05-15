@@ -93,7 +93,6 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     }
   }
 
-
   statement {
     sid = "EnvResourceTagBasedAccess"
     actions = [
@@ -101,7 +100,6 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "ec2:*",
       "eks:*",
       "iam:*",
-      "ssm:*",
       "lambda:*",
       "autoscaling:*",
       "elasticloadbalancing:*"
@@ -265,18 +263,42 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "RequirePermissionBoundaryForCreatedRoles"
+    sid    = "RequirePermissionBoundaryForCreatedRoles"
+    effect = "Deny"
     actions = [
       "iam:CreateRole",
       "iam:AttachRolePolicy",
       "iam:PutRolePermissionsBoundary",
-      "iam:PutRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
     ]
     condition {
-      test     = "StringEquals"
+      test     = "StringNotEquals"
+      variable = "iam:PermissionsBoundary"
+      values = [
+        "arn:aws:iam::${local.account_id}:policy/${local.permissions_boundary_policy_name}"
+      ]
+    }
+  }
+
+  statement {
+    sid    = "RequirePermissionBoundaryForCreatedUsers"
+    effect = "Deny"
+    actions = [
+      "iam:AttachUserPolicy",
+      "iam:CreateUser",
+      "iam:DeleteUserPolicy",
+      "iam:DetachUserPolicy",
+      "iam:PutUserPermissionsBoundary",
+      "iam:PutUserPolicy"
+    ]
+    resources = [
+      "arn:aws:iam::${local.account_id}:user/${local.resource_prefix}*"
+    ]
+    condition {
+      test     = "StringNotEquals"
       variable = "iam:PermissionsBoundary"
       values = [
         "arn:aws:iam::${local.account_id}:policy/${local.permissions_boundary_policy_name}"
@@ -296,6 +318,16 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     resources = [
       "arn:aws:iam::${local.account_id}:policy/${local.permissions_boundary_policy_name}"
     ]
+  }
+
+  statement {
+    sid    = "NoBoundaryUserDelete"
+    effect = "Deny"
+    actions = [
+      "iam:DeleteUserPermissionsBoundary",
+      "iam:DeleteRolePermissionsBoundary",
+    ]
+    resources = ["*"]
   }
 
   dynamic "statement" {
