@@ -140,6 +140,6 @@ variable "aws_account_id" {
 
 variable "external_buckets" {
   type        = list(string)
-  description = "List of external S3 buckets to allow access to, only required when permissions boundary are enabled."
+  description = "List of external S3 buckets to allow access to, only required when permissions boundary is enabled."
   default     = []
 }
