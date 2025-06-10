@@ -217,6 +217,35 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     resources = ["arn:aws:s3:::${local.resource_prefix}*"]
   }
 
+  dynamic "statement" {
+    for_each = length(var.external_buckets) > 0 ? [1] : []
+    content {
+      sid = "ExternalBuckets"
+      actions = [
+        "s3:*",
+      ]
+      resources = concat(
+        [for bucket in var.external_buckets : "arn:aws:s3:::${bucket}"],
+        [for bucket in var.external_buckets : "arn:aws:s3:::${bucket}/*"]
+      )
+      condition {
+        test     = "StringEquals"
+        variable = "aws:PrincipalType"
+        values = [
+          "AssumedRole"
+        ]
+      }
+
+      condition {
+        test = "ForAnyValue:ArnLike"
+        values = [
+          "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*",
+        ]
+        variable = "aws:PrincipalArn"
+      }
+    }
+  }
+
   statement {
     sid = "Lambda"
     actions = [
