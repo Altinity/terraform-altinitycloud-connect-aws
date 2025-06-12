@@ -89,6 +89,12 @@ resource "aws_launch_template" "this" {
     associate_public_ip_address = var.map_public_ip_on_launch
   }
   vpc_security_group_ids = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = var.require_imdsv2 ? "required" : "optional"
+  }
+
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {

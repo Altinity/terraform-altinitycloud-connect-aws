@@ -143,3 +143,9 @@ variable "external_buckets" {
   description = "List of external S3 buckets to allow access to, only required when permissions boundary is enabled."
   default     = []
 }
+
+variable "require_imdsv2" {
+  type        = bool
+  description = "[EXPERIMENTAL] Whether to require IMDSv2 (Instance Metadata Service version 2) for EC2 instances."
+  default     = false
+}
