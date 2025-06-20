@@ -2,7 +2,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   count = var.enable_permissions_boundary ? 1 : 0
 
   statement {
-    sid = "DescribeResourcesInRegion"
+    sid = "Read"
     actions = [
       "ec2:Describe*",
       "autoscaling:Describe*",
@@ -13,46 +13,29 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "MessageGatewayServiceInRegion"
+    sid = "SSM"
     actions = [
-      "ssmmessages:CreateControlChannel",
-      "ssmmessages:CreateDataChannel",
-      "ssmmessages:OpenControlChannel",
-      "ssmmessages:OpenDataChannel",
+      "ssmmessages:*",
     ]
     resources = ["*"]
   }
 
   statement {
-    sid = "EnvRequestTagBasedAccess"
+    sid = "RequireRequestTag"
     actions = [
-      "ec2:CreateVpc",
-      "ec2:CreateInternetGateway",
-      "ec2:CreateRoute",
-      "ec2:CreateRouteTable",
-      "ec2:CreateVpcEndpoint",
-      "ec2:CreateSubnet",
-      "ec2:RunInstances",
-      "ec2:CreateLaunchTemplate",
-      "ec2:CreateVolume",
-      "ec2:CreateNetworkInterface",
-      "ec2:CreateSecurityGroup",
-      "ec2:AllocateAddress",
-      "ec2:CreateNatGateway",
-      "ec2:CreateVpcEndpointServiceConfiguration",
-      "ec2:CreateVpcPeeringConnection",
+      "ec2:*",
     ]
     resources = ["*"]
     condition {
-      test     = "ForAnyValue:StringEquals"
+      test     = "StringEquals"
       values   = [local.env_name]
       variable = "aws:RequestTag/altinity:cloud/env"
     }
   }
 
   statement {
+    sid    = "DenyTagsChangeOnNonEnvResources"
     effect = "Deny"
-    sid    = "DenyTagsModificationOnNonManagedResources"
     actions = [
       "ec2:CreateTags",
     ]
@@ -65,36 +48,20 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EnvCreateRequestTagBasedAccess"
+    sid = "AllowTagsDuringCreation"
     actions = [
       "ec2:CreateTags",
     ]
     resources = ["*"]
     condition {
-      test = "ForAnyValue:StringEquals"
-      values = [
-        "CreateVpc",
-        "CreateInternetGateway",
-        "CreateRoute",
-        "CreateRouteTable",
-        "CreateVpcEndpoint",
-        "CreateSubnet",
-        "RunInstances",
-        "CreateLaunchTemplate",
-        "CreateVolume",
-        "CreateNetworkInterface",
-        "CreateSecurityGroup",
-        "AllocateAddress",
-        "CreateNatGateway",
-        "CreateVpcEndpointServiceConfiguration",
-        "CreateVpcPeeringConnection"
-      ]
+      test     = "Null"
       variable = "ec2:CreateAction"
+      values   = ["false"]
     }
   }
 
   statement {
-    sid = "EnvResourceTagBasedAccess"
+    sid = "AllowActionsOnEnvResources"
     actions = [
       "ssm:*",
       "ec2:*",
@@ -106,25 +73,16 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     ]
     resources = ["*"]
     condition {
-      test     = "ForAnyValue:StringEquals"
+      test     = "StringEquals"
       values   = [local.env_name]
       variable = "aws:ResourceTag/altinity:cloud/env"
     }
   }
 
   statement {
-    sid = "EKSPodIdentity"
+    sid = "EKSAuth"
     actions = [
-      "eks-auth:AssumeRoleForPodIdentity"
-    ]
-    resources = [
-      "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
-    ]
-  }
-
-  statement {
-    sid = "EKSDescribeCluster"
-    actions = [
+      "eks-auth:AssumeRoleForPodIdentity",
       "eks:DescribeCluster"
     ]
     resources = [
@@ -138,15 +96,10 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "ec2:RunInstances"
     ]
     resources = ["arn:aws:ec2:${local.region}::image/ami-*"]
-    condition {
-      test     = "ForAnyValue:StringEquals"
-      values   = ["amazon"]
-      variable = "ec2:Owner"
-    }
   }
 
   statement {
-    sid = "EKSNodesImages"
+    sid = "ECR"
     actions = [
       "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
@@ -157,15 +110,15 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EKSOpenIDConnectProvider"
+    sid = "EKSOIDC"
     actions = [
-      "iam:GetOpenIDConnectProvider",
+      "iam:Get*",
     ]
     resources = ["arn:aws:iam::${local.account_id}:oidc-provider/oidc.eks.${local.region}.amazonaws.com/id/*"]
   }
 
   statement {
-    sid = "EKSNodeGroups"
+    sid = "EKSNG"
     actions = [
       "eks:DescribeNodegroup",
     ]
@@ -173,39 +126,38 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EKSAutoscalingGroups"
+    sid = "EKSASG"
     actions = [
-      "autoscaling:DescribeAutoScalingGroups",
-      "autoscaling:CreateOrUpdateTags",
+      "autoscaling:*"
     ]
     resources = ["*"]
     condition {
-      test     = "ForAnyValue:StringEquals"
+      test     = "StringEquals"
       values   = [local.resource_prefix]
       variable = "aws:ResourceTag/eks:cluster-name"
     }
   }
 
   statement {
-    sid = "EKSTagSecurityGroup"
+    sid = "EKSTag"
     actions = [
       "ec2:CreateTags"
     ]
     resources = ["arn:aws:ec2:${local.region}:${local.account_id}:security-group/*"]
     condition {
-      test     = "ForAnyValue:StringEquals"
+      test     = "StringEquals"
       values   = [local.resource_prefix]
       variable = "aws:ResourceTag/aws:eks:cluster-name"
     }
   }
 
   statement {
-    sid = "EKSIAMRole"
+    sid = "EKSRole"
     actions = [
       "iam:GetRole",
     ]
     resources = [
-      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup"
+      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/*"
     ]
   }
 
@@ -237,7 +189,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       }
 
       condition {
-        test = "ForAnyValue:ArnLike"
+        test = "ArnLike"
         values = [
           "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*",
         ]
@@ -258,7 +210,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
 
   // Not possible to set boundary until EKS lambda is replaced
   statement {
-    sid = "LambdaNetworkInterface"
+    sid = "LambdaENI"
     actions = [
       "ec2:CreateNetworkInterface",
       "ec2:DeleteNetworkInterface",
@@ -267,10 +219,9 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EnvAssumeAndPassCreatedRoles"
+    sid = "AssumeAndPassEnvRoles"
     actions = [
-      "sts:AssumeRole",
-      "sts:AssumeRoleWithWebIdentity",
+      "sts:AssumeRole*",
       "iam:PassRole",
     ]
     resources = [
@@ -279,7 +230,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EnvIAMEntities"
+    sid = "IAM"
     actions = [
       "iam:*"
     ]
@@ -292,7 +243,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid    = "RequirePermissionBoundaryForCreatedRoles"
+    sid    = "RequirePBForRoles"
     effect = "Deny"
     actions = [
       "iam:CreateRole",
@@ -313,7 +264,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid    = "RequirePermissionBoundaryForCreatedUsers"
+    sid    = "RequirePBForUsers"
     effect = "Deny"
     actions = [
       "iam:AttachUserPolicy",
@@ -336,7 +287,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid    = "DenyPermissionBoundaryChanges"
+    sid    = "DenyPBChanges"
     effect = "Deny"
     actions = [
       "iam:CreatePolicyVersion",
@@ -350,11 +301,10 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid    = "NoBoundaryUserDelete"
+    sid    = "NoPBDelete"
     effect = "Deny"
     actions = [
-      "iam:DeleteUserPermissionsBoundary",
-      "iam:DeleteRolePermissionsBoundary",
+      "iam:Delete*PermissionsBoundary",
     ]
     resources = ["*"]
   }
@@ -378,4 +328,11 @@ resource "aws_iam_policy" "altinity-permission-boundary" {
   name        = local.permissions_boundary_policy_name
   description = "Altinity permission boundary for env ${local.env_name}"
   policy      = one(data.aws_iam_policy_document.permissions-boundary-policy).json
+  tags = merge(
+    local.tags,
+    {
+      "altinity:cloud/env" = local.env_name
+      "version"            = "v1.0.0"
+    }
+  )
 }
