@@ -67,6 +67,11 @@ resource "aws_iam_role_policy" "this" {
           "kafka:DeleteVpcConnection"
         ],
         Resource = "*"
+      },
+      {
+        Effect   = "Allow",
+        Action   = "vpce:AllowMultiRegion",
+        Resource = "*"
       }
     ]
   })
