@@ -7,7 +7,8 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "ec2:Describe*",
       "autoscaling:Describe*",
       "elasticloadbalancing:Describe*",
-      "route53:ListHostedZonesByVPC"
+      "route53:ListHostedZonesByVPC",
+      "sqs:ListQueues"
     ]
     resources = ["*"]
   }
@@ -167,6 +168,14 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "s3:*",
     ]
     resources = ["arn:aws:s3:::${local.resource_prefix}*"]
+  }
+
+  statement {
+    sid = "SQS"
+    actions = [
+      "sqs:*"
+    ]
+    resources = ["arn:aws:sqs:${local.region}:${local.account_id}:${local.resource_prefix}*"]
   }
 
   dynamic "statement" {
