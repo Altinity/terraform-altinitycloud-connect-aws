@@ -7,6 +7,7 @@ locals {
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonRoute53FullAccess",
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSLambda_FullAccess",
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSQSFullAccess",
   ]
 }
 
