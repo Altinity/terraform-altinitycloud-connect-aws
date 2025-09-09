@@ -8,6 +8,7 @@ locals {
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AWSLambda_FullAccess",
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore",
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSQSFullAccess",
+    "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonS3TablesFullAccess",
   ]
 }
 
