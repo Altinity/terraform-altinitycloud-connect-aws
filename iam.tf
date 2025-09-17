@@ -11,8 +11,8 @@ locals {
     "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonS3TablesFullAccess",
   ]
 
-  # Conditionally include IAMFullAccess based on scoped_iam_permissions variable
-  managed_policies = var.scoped_iam_permissions ? local.base_managed_policies : concat(
+  # Conditionally include IAMFullAccess based on restricted_iam_permissions variable
+  managed_policies = var.restricted_iam_permissions ? local.base_managed_policies : concat(
     ["arn:${data.aws_partition.current.partition}:iam::aws:policy/IAMFullAccess"],
     local.base_managed_policies
   )
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "this" {
         Action   = "vpce:AllowMultiRegion",
         Resource = "*"
       }
-    ], var.scoped_iam_permissions ? [
+    ], var.restricted_iam_permissions ? [
       {
         Sid    = "IAMUserManagement"
         Effect = "Allow"

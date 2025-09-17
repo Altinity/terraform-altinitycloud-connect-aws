@@ -150,7 +150,7 @@ variable "require_imdsv2" {
   default     = false
 }
 
-variable "scoped_iam_permissions" {
+variable "restricted_iam_permissions" {
   type        = bool
   description = "Use scoped IAM permissions instead of IAMFullAccess. When true, IAM user operations are limited to *-clickhouse-backup users only."
   default     = false
