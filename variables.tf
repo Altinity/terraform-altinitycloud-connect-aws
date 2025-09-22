@@ -149,3 +149,15 @@ variable "require_imdsv2" {
   description = "[EXPERIMENTAL] Whether to require IMDSv2 (Instance Metadata Service version 2) for EC2 instances."
   default     = false
 }
+
+variable "restricted_iam_permissions" {
+  type        = bool
+  description = "Use scoped IAM permissions instead of IAMFullAccess. When true, IAM user operations are limited to *-clickhouse-backup users only."
+  default     = false
+}
+
+variable "create_user_permissions" {
+  type        = bool
+  description = "Create user permissions for the IAM role."
+  default     = true
+}
