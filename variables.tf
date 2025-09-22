@@ -155,3 +155,9 @@ variable "restricted_iam_permissions" {
   description = "Use scoped IAM permissions instead of IAMFullAccess. When true, IAM user operations are limited to *-clickhouse-backup users only."
   default     = false
 }
+
+variable "create_user_permissions" {
+  type        = bool
+  description = "Create user permissions for the IAM role."
+  default     = true
+}

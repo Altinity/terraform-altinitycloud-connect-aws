@@ -16,6 +16,154 @@ locals {
     ["arn:${data.aws_partition.current.partition}:iam::aws:policy/IAMFullAccess"],
     local.base_managed_policies
   )
+
+  # Default IAM policy statements (always included)
+  default_iam_policy_statements = [
+    {
+      Effect   = "Allow",
+      Action   = "eks:*",
+      Resource = "*"
+    },
+    {
+      Effect   = "Allow",
+      Action   = "iam:PassRole",
+      Resource = "*",
+      Condition = {
+        StringEquals = {
+          "iam:PassedToService" = "eks.amazonaws.com"
+        }
+      }
+    },
+    {
+      Effect   = "Allow",
+      Action   = "ssm:GetParameter",
+      Resource = var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].arn : aws_ssm_parameter.this[0].arn
+    },
+    {
+      Effect = "Allow",
+      Action = [
+        "kafka:CreateVpcConnection",
+        "kafka:GetBootstrapBrokers",
+        "kafka:DescribeCluster",
+        "kafka:DescribeClusterV2",
+        "kafka:ListVpcConnections",
+        "kafka:DeleteVpcConnection"
+      ],
+      Resource = "*"
+    },
+    {
+      Effect   = "Allow",
+      Action   = "vpce:AllowMultiRegion",
+      Resource = "*"
+    }
+  ]
+
+  # User-related IAM policy statements (static list)
+  user_iam_policy_statements = [
+    {
+      Sid    = "IAMUserManagement"
+      Effect = "Allow"
+      Action = [
+        "iam:CreateUser",
+        "iam:GetUser",
+        "iam:DeleteUser",
+        "iam:TagUser",
+        "iam:ListUserTags"
+      ]
+      Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
+    },
+    {
+      Sid    = "IAMUserPolicyManagement"
+      Effect = "Allow"
+      Action = [
+        "iam:PutUserPolicy",
+        "iam:GetUserPolicy",
+        "iam:DeleteUserPolicy",
+        "iam:ListUserPolicies"
+      ]
+      Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
+    },
+    {
+      Sid    = "IAMAccessKeyManagement"
+      Effect = "Allow"
+      Action = [
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys"
+      ]
+      Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
+    }
+  ]
+
+  # Role and policy management IAM policy statements (static list)
+  role_iam_policy_statements = [
+    {
+      Sid    = "IAMRoleAndPolicyManagement"
+      Effect = "Allow"
+      Action = [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:UpdateRole",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:ListRoleTags",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+        "iam:ListPolicyTags",
+        "iam:CreateServiceLinkedRole",
+        "iam:DeleteServiceLinkedRole",
+        "iam:GetServiceLinkedRoleDeletionStatus",
+        "iam:CreateInstanceProfile",
+        "iam:DeleteInstanceProfile",
+        "iam:GetInstanceProfile",
+        "iam:AddRoleToInstanceProfile",
+        "iam:RemoveRoleFromInstanceProfile",
+        "iam:ListInstanceProfiles",
+        "iam:ListInstanceProfilesForRole",
+        "iam:TagInstanceProfile",
+        "iam:UntagInstanceProfile",
+        "iam:PassRole",
+        "iam:CreateOpenIDConnectProvider",
+        "iam:DeleteOpenIDConnectProvider",
+        "iam:GetOpenIDConnectProvider",
+        "iam:ListOpenIDConnectProviders",
+        "iam:TagOpenIDConnectProvider",
+        "iam:UntagOpenIDConnectProvider"
+      ]
+      Resource = "*"
+    },
+    {
+      Sid    = "IAMReadOnlyAccess"
+      Effect = "Allow"
+      Action = [
+        "iam:Get*",
+        "iam:List*",
+        "iam:SimulatePrincipalPolicy"
+      ]
+      Resource = "*"
+    }
+  ]
+
+  # Combined restricted IAM policy statements (dynamic based on create_user_permissions)
+  restricted_iam_policy_statements = concat(
+    var.create_user_permissions ? local.user_iam_policy_statements : [],
+    local.role_iam_policy_statements
+  )
 }
 
 data "aws_partition" "current" {}
@@ -43,142 +191,12 @@ resource "aws_iam_role_policy" "this" {
   role = aws_iam_role.this.id
   policy = jsonencode({
     Version = "2012-10-17",
-    Statement = concat([
-      {
-        Effect   = "Allow",
-        Action   = "eks:*",
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow",
-        Action   = "iam:PassRole",
-        Resource = "*",
-        Condition = {
-          StringEquals = {
-            "iam:PassedToService" = "eks.amazonaws.com"
-          }
-        }
-      },
-      {
-        Effect   = "Allow",
-        Action   = "ssm:GetParameter",
-        Resource = var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].arn : aws_ssm_parameter.this[0].arn
-      },
-      {
-        Effect = "Allow",
-        Action = [
-          "kafka:CreateVpcConnection",
-          "kafka:GetBootstrapBrokers",
-          "kafka:DescribeCluster",
-          "kafka:DescribeClusterV2",
-          "kafka:ListVpcConnections",
-          "kafka:DeleteVpcConnection"
-        ],
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow",
-        Action   = "vpce:AllowMultiRegion",
-        Resource = "*"
-      }
-    ], var.restricted_iam_permissions ? [
-      {
-        Sid    = "IAMUserManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:CreateUser",
-          "iam:GetUser",
-          "iam:DeleteUser",
-          "iam:TagUser",
-          "iam:ListUserTags"
-        ]
-        Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
-      },
-      {
-        Sid    = "IAMUserPolicyManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:PutUserPolicy",
-          "iam:GetUserPolicy",
-          "iam:DeleteUserPolicy",
-          "iam:ListUserPolicies"
-        ]
-        Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
-      },
-      {
-        Sid    = "IAMAccessKeyManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:CreateAccessKey",
-          "iam:DeleteAccessKey",
-          "iam:ListAccessKeys"
-        ]
-        Resource = "arn:${data.aws_partition.current.partition}:iam::*:user/*-clickhouse-backup"
-      },
-      {
-        Sid    = "IAMRoleAndPolicyManagement"
-        Effect = "Allow"
-        Action = [
-          "iam:CreateRole",
-          "iam:DeleteRole",
-          "iam:GetRole",
-          "iam:UpdateRole",
-          "iam:TagRole",
-          "iam:UntagRole",
-          "iam:ListRoleTags",
-          "iam:AttachRolePolicy",
-          "iam:DetachRolePolicy",
-          "iam:ListAttachedRolePolicies",
-          "iam:ListRolePolicies",
-          "iam:PutRolePolicy",
-          "iam:GetRolePolicy",
-          "iam:DeleteRolePolicy",
-          "iam:CreatePolicy",
-          "iam:DeletePolicy",
-          "iam:GetPolicy",
-          "iam:GetPolicyVersion",
-          "iam:ListPolicyVersions",
-          "iam:CreatePolicyVersion",
-          "iam:DeletePolicyVersion",
-          "iam:TagPolicy",
-          "iam:UntagPolicy",
-          "iam:ListPolicyTags",
-          "iam:CreateServiceLinkedRole",
-          "iam:DeleteServiceLinkedRole",
-          "iam:GetServiceLinkedRoleDeletionStatus",
-          "iam:CreateInstanceProfile",
-          "iam:DeleteInstanceProfile",
-          "iam:GetInstanceProfile",
-          "iam:AddRoleToInstanceProfile",
-          "iam:RemoveRoleFromInstanceProfile",
-          "iam:ListInstanceProfiles",
-          "iam:ListInstanceProfilesForRole",
-          "iam:TagInstanceProfile",
-          "iam:UntagInstanceProfile",
-          "iam:PassRole",
-          "iam:CreateOpenIDConnectProvider",
-          "iam:DeleteOpenIDConnectProvider",
-          "iam:GetOpenIDConnectProvider",
-          "iam:ListOpenIDConnectProviders",
-          "iam:TagOpenIDConnectProvider",
-          "iam:UntagOpenIDConnectProvider"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "IAMReadOnlyAccess"
-        Effect = "Allow"
-        Action = [
-          "iam:Get*",
-          "iam:List*",
-          "iam:SimulatePrincipalPolicy"
-        ]
-        Resource = "*"
-      }
-    ] : [])
+    Statement = concat(
+      local.default_iam_policy_statements,
+      var.restricted_iam_permissions ? local.restricted_iam_policy_statements : []
+    )
   })
 }
-
 
 resource "aws_iam_role_policy_attachment" "managed_policies" {
   for_each   = toset(local.managed_policies)
