@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0]
 
 ### Added
-- Restrict AWS IAM permissions (#14)
-- Allow restricted IAM permissions for the IAM role (#11)
+- Restrict AWS IAM permissions ([#14](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/14))
+- Allow restricted IAM permissions for the IAM role ([#11](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/11))
 
 ### Changed
 - Improve readme and add contributing ([c36bcfc](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/c36bcfc))
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.17]
 
 ### Added
-- Extend permissions boundary to include limited SQS access (#13)
+- Extend permissions boundary to include limited SQS access ([#13](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/13))
 
 ## [0.1.16]
 
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.15]
 
 ### Added
-- Add permission for vpce cross region (#12)
+- Add permission for vpce cross region ([#12](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/12))
 
 ## [0.1.14]
 
@@ -44,22 +44,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Allow IMDSv2 for EC2 instances ([9672238](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/9672238))
-- Simplify permissions boundary document to reduce its size, add version tag (#10)
+- Simplify permissions boundary document to reduce its size, add version tag ([#10](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/10))
 
 ## [0.1.12]
 
 ### Added
-- Add external S3 bucket support to permissions boundary (#8)
+- Add external S3 bucket support to permissions boundary ([#8](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/8))
 
 ## [0.1.11]
 
 ### Fixed
-- Update IAM permission boundaries for roles and users (#7)
+- Update IAM permission boundaries for roles and users ([#7](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/7))
 
 ## [0.1.10]
 
 ### Added
-- AWS permission boundary (#6)
+- AWS permission boundary ([#6](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/6))
 
 ## [0.1.9]
 
@@ -85,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add CIDR variable ([2af347a](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/2af347a))
 
 ### Changed
-- Migrate inline and managed policies (#4)
+- Migrate inline and managed policies ([#4](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/4))
 
 ## [0.1.5]
 
@@ -100,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.3]
 
 ### Fixed
-- Account for different AWS partitions (#2)
+- Account for different AWS partitions ([#2](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/2))
 
 ## [0.1.2]
 
