@@ -150,6 +150,15 @@ For a complete list of variables, see [variables.tf](variables.tf).
 - **Permission errors:** Ensure AWS credentials have sufficient permissions and verify IAM role policies.
 - **Network connectivity issues:** Verify subnet routing tables, security group rules, and internet gateway configuration.
 
+### Need Help?
+
+If you encounter issues not covered above, please [create an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) and include:
+
+- **Terraform** and module version
+- **Error messages** or logs from CloudWatch/Terraform
+- **Configuration details** (sanitized `terraform plan` output)
+- **Steps to reproduce** the issue
+
 ## Contributing
 
 Contributions are welcome! Please submit a Pull Request or open an issue for major changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and advanced configuration examples.
