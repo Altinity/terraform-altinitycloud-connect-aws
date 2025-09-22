@@ -148,16 +148,10 @@ For a complete list of variables, see [variables.tf](variables.tf).
 
 - **Instance fails to start:** Check certificate validity and network connectivity to Altinity.Cloud. Review CloudWatch logs.
 - **Permission errors:** Ensure AWS credentials have sufficient permissions and verify IAM role policies.
-- **Network connectivity issues:** Verify subnet routing tables, security group rules, and internet gateway configuration.
 
 ### Need Help?
 
-If you encounter issues not covered above, please [create an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) and include:
-
-- **Terraform** and module version
-- **Error messages** or logs from CloudWatch/Terraform
-- **Configuration details** (sanitized `terraform plan` output)
-- **Steps to reproduce** the issue
+If you encounter issues not covered above, please [create an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) with detailed information about your problem.
 
 ## Contributing
 
