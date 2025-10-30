@@ -132,6 +132,7 @@ module "altinitycloud_connect_aws" {
 | `enable_permissions_boundary` | Enable IAM permission boundaries | `bool` | `false` |
 | `external_buckets` | Additional S3 buckets to allow access | `list(string)` | `[]` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
+| `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
 | `tags` | Resource tags | `map(string)` | `{}` |
 
 For a complete list of variables, see [variables.tf](variables.tf).
