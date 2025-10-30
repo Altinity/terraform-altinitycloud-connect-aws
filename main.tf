@@ -87,8 +87,8 @@ resource "aws_launch_template" "this" {
   }
   network_interfaces {
     associate_public_ip_address = var.map_public_ip_on_launch
+    security_groups             = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
   }
-  vpc_security_group_ids = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
 
   metadata_options {
     http_endpoint = "enabled"
