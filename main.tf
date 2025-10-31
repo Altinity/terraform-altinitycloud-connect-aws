@@ -99,9 +99,9 @@ resource "aws_launch_template" "this" {
     device_name = "/dev/xvda"
     ebs {
       volume_size           = 20
-      volume_type           = "gp3"
+      volume_type           = var.use_encrypted_volume ? "gp3" : "gp2"
       delete_on_termination = true
-      encrypted             = true
+      encrypted             = var.use_encrypted_volume
     }
   }
   user_data = base64encode(

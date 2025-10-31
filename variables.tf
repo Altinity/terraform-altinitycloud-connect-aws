@@ -161,3 +161,9 @@ variable "create_user_permissions" {
   description = "Create user permissions for the IAM role."
   default     = true
 }
+
+variable "use_encrypted_volume" {
+  type        = bool
+  description = "Use encrypted volume for the EC2 instance."
+  default     = false
+}
