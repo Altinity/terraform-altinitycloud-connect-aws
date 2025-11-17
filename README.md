@@ -132,6 +132,8 @@ module "altinitycloud_connect_aws" {
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
 | `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
+| `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
+| `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
 | `replicas` | Number of cloud-connect instances (1-3) | `number` | `1` |
 | `allow_altinity_access` | Allow Altinity break-glass access | `bool` | `true` |
 | `break_glass_principal` | IAM principal used for break-glass access | `string` | `"arn:aws:iam::313342380333:role/AnywhereAdmin"` |

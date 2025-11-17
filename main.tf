@@ -98,8 +98,8 @@ resource "aws_launch_template" "this" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size           = 20
-      volume_type           = "gp3"
+      volume_size           = var.root_volume_size
+      volume_type           = var.root_volume_type
       delete_on_termination = true
       encrypted             = true
     }

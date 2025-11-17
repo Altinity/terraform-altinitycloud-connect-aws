@@ -81,6 +81,18 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
+variable "root_volume_size" {
+  description = "Size (in GiB) of the root EBS volume."
+  type        = number
+  default     = 20
+}
+
+variable "root_volume_type" {
+  description = "EBS volume type used for the root volume."
+  type        = string
+  default     = "gp3"
+}
+
 variable "replicas" {
   description = "Number of altinity/cloud-connect replicas (EC2 instances)."
   type        = number
