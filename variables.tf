@@ -114,6 +114,12 @@ variable "ami_name" {
   default     = ""
 }
 
+variable "ami_owners" {
+  description = "List of AWS account IDs or owners to filter AMI lookup."
+  type        = list(string)
+  default     = ["amazon"]
+}
+
 variable "ec2_security_group_ids" {
   type        = list(string)
   default     = []

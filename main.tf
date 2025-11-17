@@ -40,7 +40,7 @@ data "aws_ec2_instance_type" "current" {
 }
 
 data "aws_ami" "current" {
-  owners = ["amazon"]
+  owners = var.ami_owners
   filter {
     name = "name"
     values = [
