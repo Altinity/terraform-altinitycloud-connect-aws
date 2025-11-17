@@ -122,18 +122,30 @@ module "altinitycloud_connect_aws" {
 
 | Name | Description | Type | Default |
 |------|-------------|------|---------|
+| `url` | Altinity.Cloud Anywhere base URL | `string` | `"https://anywhere.altinity.cloud"` |
+| `image` | Custom Docker image (defaults to `altinity/cloud-connect:$version`) | `string` | `"altinity/cloud-connect:0.133.0"` |
 | `pem_ssm_parameter_name` | AWS SSM Parameter containing the certificate | `string` | `""` |
-| `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
-| `replicas` | Number of cloud-connect instances (1-3) | `number` | `1` |
+| `ca_crt` | Custom CA certificate to trust for cloud-connect | `string` | `""` |
+| `host_aliases` | Host aliases for the EC2 instance(s) | `map(string)` | `{}` |
 | `subnets` | List of subnet IDs for instances | `list(string)` | `[]` |
 | `use_default_subnets` | Use default VPC subnets | `bool` | `false` |
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
+| `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
+| `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
+| `replicas` | Number of cloud-connect instances (1-3) | `number` | `1` |
 | `allow_altinity_access` | Allow Altinity break-glass access | `bool` | `true` |
-| `enable_permissions_boundary` | Enable IAM permission boundaries | `bool` | `false` |
+| `break_glass_principal` | IAM principal used for break-glass access | `string` | `"arn:aws:iam::313342380333:role/AnywhereAdmin"` |
+| `tags` | Resource tags | `map(string)` | `{}` |
+| `ami_name` | Override AMI name used for lookup | `string` | `""` |
+| `ami_owners` | AMI owner IDs used during lookup | `list(string)` | `["amazon"]` |
+| `ec2_security_group_ids` | Security groups to attach to the instance(s) | `list(string)` | `[]` |
+| `enable_permissions_boundary` | Enable IAM permissions boundary | `bool` | `false` |
+| `region` | Override AWS region for lookups | `string` | `""` |
+| `aws_account_id` | Override AWS account ID for lookups | `string` | `""` |
 | `external_buckets` | Additional S3 buckets to allow access | `list(string)` | `[]` |
+| `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
-| `tags` | Resource tags | `map(string)` | `{}` |
 
 For a complete list of variables, see [variables.tf](variables.tf).
 
