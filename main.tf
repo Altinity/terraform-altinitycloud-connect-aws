@@ -20,7 +20,7 @@ locals {
     Name                 = local.name
     "altinity:cloud/env" = local.env_name
   })
-  region     = var.region != "" ? var.region : data.aws_region.current.region
+  region     = var.region != "" ? var.region : data.aws_region.current.name
   account_id = var.aws_account_id != "" ? var.aws_account_id : data.aws_caller_identity.current.account_id
 }
 
