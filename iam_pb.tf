@@ -81,6 +81,14 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
+    sid = "VPCEndpointServiceMultiRegion"
+    actions = [
+      "vpce:AllowMultiRegion"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
     sid = "EKSAuth"
     actions = [
       "eks-auth:AssumeRoleForPodIdentity",
