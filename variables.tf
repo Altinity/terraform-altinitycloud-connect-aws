@@ -3,10 +3,16 @@ variable "url" {
   default = "https://anywhere.altinity.cloud"
 }
 
-variable "image" {
-  description = "Custom Docker image (defaults to altinity/cloud-connect:$version)."
+variable "cloud_connect_version" {
+  description = "Specific cloud-connect version. If empty and image is not set, latest version is fetched from GitHub releases."
   type        = string
-  default     = "altinity/cloud-connect:0.133.0"
+  default     = ""
+}
+
+variable "image" {
+  description = "Full Docker image override (e.g. altinity/cloud-connect:0.140.0). Takes precedence over cloud_connect_version."
+  type        = string
+  default     = ""
 }
 
 variable "pem" {
