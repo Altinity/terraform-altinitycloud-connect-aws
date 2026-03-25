@@ -1,6 +1,7 @@
 variable "url" {
-  type    = string
-  default = "https://anywhere.altinity.cloud"
+  description = "Altinity.Cloud API URL."
+  type        = string
+  default     = "https://anywhere.altinity.cloud"
 }
 
 variable "image" {
@@ -62,8 +63,9 @@ variable "cidr_block" {
 }
 
 variable "map_public_ip_on_launch" {
-  type    = bool
-  default = true
+  description = "Whether to assign a public IP address to cloud-connect EC2 instance(s) on launch."
+  type        = bool
+  default     = true
 }
 
 variable "use_default_subnets" {
@@ -111,8 +113,9 @@ variable "allow_altinity_access" {
 }
 
 variable "break_glass_principal" {
-  type    = string
-  default = "arn:aws:iam::313342380333:role/AnywhereAdmin"
+  description = "IAM principal ARN allowed break-glass access to cloud-connect EC2 instance(s)."
+  type        = string
+  default     = "arn:aws:iam::313342380333:role/AnywhereAdmin"
 }
 
 variable "tags" {
