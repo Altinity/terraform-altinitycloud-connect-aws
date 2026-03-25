@@ -44,7 +44,7 @@ data "aws_ami" "current" {
   filter {
     name = "name"
     values = [
-      # Amazon Linux 2
+      # Amazon Linux 2023
       #
       # To lookup name when updating:
       #
