@@ -32,5 +32,17 @@ docker run -d --name=altinitycloud-connect --restart=always -v /etc/altinityclou
   --capability aws
 
 
+# Healthcheck: mark instance unhealthy if cloud-connect container stops running
+cat <<'HEALTHCHECK' > /usr/local/bin/cloud-connect-healthcheck.sh
+#!/bin/bash
+imdsv2_token=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+instance_id=$(curl -s -H "X-aws-ec2-metadata-token: $imdsv2_token" http://169.254.169.254/latest/meta-data/instance-id)
+if ! docker inspect --format='{{.State.Running}}' altinitycloud-connect 2>/dev/null | grep -q true; then
+  aws autoscaling set-instance-health --instance-id "$instance_id" --health-status Unhealthy
+fi
+HEALTHCHECK
+chmod +x /usr/local/bin/cloud-connect-healthcheck.sh
+echo "* * * * * root /usr/local/bin/cloud-connect-healthcheck.sh" > /etc/cron.d/cloud-connect-healthcheck
+
 aws autoscaling complete-lifecycle-action --lifecycle-action-result CONTINUE --instance-id "$instance" \
   --lifecycle-hook-name ${asg_hook_name} --auto-scaling-group-name ${asg_name}

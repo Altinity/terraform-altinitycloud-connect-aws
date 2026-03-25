@@ -126,10 +126,12 @@ resource "aws_launch_template" "this" {
 }
 
 resource "aws_autoscaling_group" "this" {
-  name             = local.name
-  min_size         = 0
-  desired_capacity = var.replicas
-  max_size         = 3
+  name                      = local.name
+  min_size                  = 0
+  desired_capacity          = var.replicas
+  max_size                  = 3
+  health_check_type         = "EC2"
+  health_check_grace_period = 300
   launch_template {
     id      = aws_launch_template.this.id
     version = aws_launch_template.this.latest_version
