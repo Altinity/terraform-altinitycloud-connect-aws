@@ -60,7 +60,7 @@ data "aws_ami" "current" {
   filter {
     name = "name"
     values = [
-      # Amazon Linux 2
+      # Amazon Linux 2023
       #
       # To lookup name when updating:
       #
@@ -159,6 +159,9 @@ resource "aws_autoscaling_group" "this" {
 
   instance_refresh {
     strategy = "Rolling"
+    preferences {
+      instance_warmup = 300
+    }
   }
 
   wait_for_capacity_timeout = "7m"
