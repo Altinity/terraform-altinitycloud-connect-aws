@@ -56,8 +56,7 @@ data "aws_ami" "current" {
       local.ami_name
     ]
   }
-  most_recent        = true
-  include_deprecated = true
+  most_recent = true
 }
 
 resource "aws_ssm_parameter" "this" {
