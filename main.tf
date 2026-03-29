@@ -79,7 +79,7 @@ data "aws_ami" "current" {
 resource "aws_ssm_parameter" "this" {
   count = var.pem_ssm_parameter_name == "" ? 1 : 0
   name  = "${local.name}-secret"
-  type  = "String"
+  type  = "SecureString"
   value = var.pem
   tier  = "Intelligent-Tiering"
   tags  = local.tags
