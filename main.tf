@@ -11,7 +11,23 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
+data "http" "cloud_connect_latest" {
+  count = var.image == "" && var.cloud_connect_version == "" ? 1 : 0
+  url   = "https://api.github.com/repos/Altinity/cloud-connect/releases/latest"
+  request_headers = {
+    Accept = "application/vnd.github.v3+json"
+  }
+}
+
 locals {
+  fallback_version      = "0.133.0"
+  cloud_connect_version = coalesce(
+    var.cloud_connect_version,
+    try(trimprefix(jsondecode(data.http.cloud_connect_latest[0].response_body).tag_name, "v"), ""),
+    local.fallback_version,
+  )
+  image = var.image != "" ? var.image : "altinity/cloud-connect:${local.cloud_connect_version}"
+
   env_name = regex("CN=([^,]+)", data.tls_certificate.env_pem.certificates[0].subject)[0]
   ami_name = (var.ami_name != "" ? var.ami_name :
   "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
@@ -106,7 +122,7 @@ resource "aws_launch_template" "this" {
   }
   user_data = base64encode(
     templatefile("${path.module}/user-data.sh.tpl", {
-      image = var.image,
+      image = local.image,
       ssm_parameter_name = (var.pem_ssm_parameter_name != "" ? data.aws_ssm_parameter.this[0].name :
       aws_ssm_parameter.this[0].name)
       url           = var.url
@@ -120,7 +136,7 @@ resource "aws_launch_template" "this" {
     resource_type = "instance"
     tags = merge(local.tags, {
       "terraform:altinity:cloud/instance-group" = local.name
-      "altinity:cloud/version"                  = var.image
+      "altinity:cloud/version"                  = local.image
     })
   }
 }

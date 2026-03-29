@@ -1,0 +1,50 @@
+name: Update fallback version
+
+on:
+  schedule:
+    # Every Monday at 9:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-fallback-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest cloud-connect release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(gh api repos/Altinity/cloud-connect/releases/latest --jq '.tag_name' | sed 's/^v//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Get current fallback version
+        id: current
+        run: |
+          VERSION=$(grep -oP 'fallback_version\s*=\s*"\K[^"]+' main.tf)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Update fallback version
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        run: |
+          sed -i 's/fallback_version\s*=\s*"[^"]*"/fallback_version      = "${{ steps.latest.outputs.version }}"/' main.tf
+
+      - name: Create Pull Request
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "bump(cloud-connect): update fallback version from ${{ steps.current.outputs.version }} to ${{ steps.latest.outputs.version }}"
+          branch: chore/update-fallback-version
+          title: "bump(cloud-connect): update fallback version from ${{ steps.current.outputs.version }} to ${{ steps.latest.outputs.version }}"
+          body: |
+            Updates `fallback_version` from `${{ steps.current.outputs.version }}` to `${{ steps.latest.outputs.version }}`.
+
+            This is an automated PR created by the [update-fallback-version](${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-fallback-version.yml) workflow.
+          labels: automated
+          delete-branch: true
