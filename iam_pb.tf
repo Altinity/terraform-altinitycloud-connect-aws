@@ -92,7 +92,8 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     sid = "EKSAuth"
     actions = [
       "eks-auth:AssumeRoleForPodIdentity",
-      "eks:DescribeCluster"
+      "eks:DescribeCluster",
+      "eks:ListNodegroups"
     ]
     resources = [
       "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
