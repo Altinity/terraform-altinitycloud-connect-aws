@@ -119,6 +119,16 @@ resource "aws_launch_template" "this" {
       encrypted             = true
     }
   }
+  lifecycle {
+    precondition {
+      condition = (
+        contains(["gp2", "gp3", "standard"], var.root_volume_type) && var.root_volume_size >= 1
+        ) || (
+        contains(["io1", "io2"], var.root_volume_type) && var.root_volume_size >= 4
+      )
+      error_message = "Root volume size must be at least 1 GiB for gp2, gp3, and standard; and at least 4 GiB for io1 and io2."
+    }
+  }
   user_data = base64encode(
     templatefile("${path.module}/user-data.sh.tpl", {
       image = local.image,

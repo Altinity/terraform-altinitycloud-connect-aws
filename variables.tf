@@ -1,9 +1,10 @@
 variable "url" {
-  type    = string
-  default = "https://anywhere.altinity.cloud"
+  description = "Altinity.Cloud API URL."
+  type        = string
+  default     = "https://anywhere.altinity.cloud"
   validation {
-    condition     = startswith(var.url, "https://")
-    error_message = "URL must start with https://."
+    condition     = startswith(var.url, "http://") || startswith(var.url, "https://")
+    error_message = "URL must start with http:// or https://."
   }
 }
 
@@ -70,7 +71,7 @@ variable "cidr_block" {
   type        = string
   default     = "10.0.0.0/16"
   validation {
-    condition     = can(cidrhost(var.cidr_block, 0))
+    condition     = can(regex("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+$", var.cidr_block)) && can(cidrhost(var.cidr_block, 0))
     error_message = "Must be a valid IPv4 CIDR block."
   }
 }
@@ -101,10 +102,6 @@ variable "root_volume_size" {
   description = "Size (in GiB) of the root EBS volume."
   type        = number
   default     = 20
-  validation {
-    condition     = var.root_volume_size >= 8
-    error_message = "Root volume size must be at least 8 GiB."
-  }
 }
 
 variable "root_volume_type" {
@@ -112,8 +109,8 @@ variable "root_volume_type" {
   type        = string
   default     = "gp3"
   validation {
-    condition     = contains(["gp2", "gp3", "io1", "io2"], var.root_volume_type)
-    error_message = "Volume type must be one of: gp2, gp3, io1, io2."
+    condition     = contains(["gp2", "gp3", "io1", "io2", "standard"], var.root_volume_type)
+    error_message = "Volume type must be one of: gp2, gp3, io1, io2, standard."
   }
 }
 
