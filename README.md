@@ -29,12 +29,15 @@ provider "aws" {
   region = "us-west-2"
 }
 
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
   version = "~> 0.3.0"
 
-  # Certificate from `altinitycloud-connect login`
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
 }
 ```
 
@@ -43,11 +46,15 @@ module "altinitycloud_connect_aws" {
 ### High Availability Setup
 
 ```terraform
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
 
   # High availability configuration
   replicas      = 3
@@ -64,11 +71,15 @@ module "altinitycloud_connect_aws" {
 ### Custom VPC Setup
 
 ```terraform
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
 
   # Create new VPC with custom CIDR
   cidr_block               = "172.16.0.0/16"
@@ -89,11 +100,15 @@ module "altinitycloud_connect_aws" {
 ### Using Existing VPC
 
 ```terraform
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
 
   # Use existing VPC subnets
   subnets = [

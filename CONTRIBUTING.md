@@ -30,9 +30,9 @@ For development and testing with custom builds:
 ```terraform
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem   = file("cloud-connect.pem")
+  pem   = altinitycloud_env_certificate.this.pem
   image = "altinity/cloud-connect:custom-tag"
 }
 ```
@@ -44,9 +44,9 @@ For development environments with custom certificate authorities:
 ```terraform
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem    = file("cloud-connect.pem")
+  pem    = altinitycloud_env_certificate.this.pem
   ca_crt = file("custom-ca.crt")
 }
 ```
@@ -58,9 +58,9 @@ For development environments that need to connect to a different endpoint:
 ```terraform
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
   url = "https://other.environment.com"
 }
 ```
@@ -72,9 +72,9 @@ For development environments that need custom host resolution:
 ```terraform
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
-  pem = file("cloud-connect.pem")
+  pem = altinitycloud_env_certificate.this.pem
 
   host_aliases = {
     "internal.altinity.cloud" = "10.0.1.100"
