@@ -5,10 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.3.0](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.2.5...v0.3.0)
+
+### Added
+- Auto-resolve cloud-connect version from GitHub releases [#19](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/19).
+- Add `env_name`, `iam_role_arn` and `autoscaling_group_name` outputs [5e23ebd](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/5e23ebd).
+- Add executable examples for common module configurations [365904c](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/365904c).
+- Add tags to EC2 volume [7589d6a](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/7589d6a).
 
 ### Fixed
-- Allow `eks:ListNodegroups` in the permissions boundary for managed EKS clusters.
+- Allow `eks:ListNodegroups` in the permissions boundary for managed EKS clusters [59fe088](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/59fe088).
+- Use SSM SecureString, mark PEM as sensitive, add `versions.tf` and improve variable descriptions [#25](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/25).
+- Add `instance_warmup` to ASG instance refresh [800c4a1](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/800c4a1).
 
 ## [0.2.5](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.2.4...v0.2.5)
 

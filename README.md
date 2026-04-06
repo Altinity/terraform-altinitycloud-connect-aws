@@ -31,7 +31,7 @@ provider "aws" {
 
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.2.0"
+  version = "~> 0.3.0"
 
   # Certificate from `altinitycloud-connect login`
   pem = file("cloud-connect.pem")
