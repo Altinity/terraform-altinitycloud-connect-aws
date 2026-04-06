@@ -92,6 +92,10 @@ locals {
   resource_prefix = (var.enable_permissions_boundary ?
   "${local.resource_prefix_base}-${one(random_string.resource_prefix).result}" : null)
   permissions_boundary_policy_name = var.enable_permissions_boundary ? "${local.env_name}-boundary" : null
+  launch_template_tags = merge(local.tags, {
+    "terraform:altinity:cloud/instance-group" = local.name
+    "altinity:cloud/version"                  = local.image
+  })
 }
 
 resource "aws_launch_template" "this" {
@@ -134,10 +138,11 @@ resource "aws_launch_template" "this" {
   )
   tag_specifications {
     resource_type = "instance"
-    tags = merge(local.tags, {
-      "terraform:altinity:cloud/instance-group" = local.name
-      "altinity:cloud/version"                  = local.image
-    })
+    tags          = local.launch_template_tags
+  }
+  tag_specifications {
+    resource_type = "volume"
+    tags          = local.tags
   }
 }
 
