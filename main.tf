@@ -20,7 +20,7 @@ data "http" "cloud_connect_latest" {
 }
 
 locals {
-  fallback_version      = "0.133.0"
+  fallback_version = "0.133.0"
   cloud_connect_version = coalesce(
     var.cloud_connect_version,
     try(trimprefix(jsondecode(data.http.cloud_connect_latest[0].response_body).tag_name, "v"), ""),

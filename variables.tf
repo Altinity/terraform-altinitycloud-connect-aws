@@ -189,3 +189,40 @@ variable "create_user_permissions" {
   description = "Create user permissions for the IAM role."
   default     = true
 }
+
+variable "create_service_linked_roles" {
+  type        = bool
+  description = <<EOT
+Master switch to let this module manage AWS Service-Linked Roles (SLRs).
+
+When false (default) no SLR is created and the "service_linked_roles" variable is ignored,
+keeping backwards-compatibility for accounts where these roles already exist.
+
+When true, the SLRs listed in "service_linked_roles" are created.
+SLRs are global per AWS account; if any already exists Terraform will fail with
+EntityAlreadyExists. Drop those keys from "service_linked_roles" to skip them.
+EOT
+  default     = false
+}
+
+variable "service_linked_roles" {
+  type        = set(string)
+  description = <<EOT
+Subset of AWS Service-Linked Roles to create when "create_service_linked_roles" is true.
+
+Available keys:
+  - "eks"           -> AWSServiceRoleForAmazonEKS            (eks.amazonaws.com)
+  - "eks-nodegroup" -> AWSServiceRoleForAmazonEKSNodegroup   (eks-nodegroup.amazonaws.com)
+  - "elb"           -> AWSServiceRoleForElasticLoadBalancing (elasticloadbalancing.amazonaws.com)
+
+Check what already exists in your account with:
+  aws iam list-roles --path-prefix /aws-service-role/ --query 'Roles[].RoleName'
+EOT
+  default     = ["eks", "eks-nodegroup", "elb"]
+  validation {
+    condition = alltrue([
+      for r in var.service_linked_roles : contains(["eks", "eks-nodegroup", "elb"], r)
+    ])
+    error_message = "service_linked_roles only accepts: \"eks\", \"eks-nodegroup\", \"elb\"."
+  }
+}

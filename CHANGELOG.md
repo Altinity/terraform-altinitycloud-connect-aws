@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- New `create_service_linked_roles` (bool, default `false`) and `service_linked_roles` (set, default `["eks", "eks-nodegroup", "elb"]`) variables to optionally let the module create the AWS Service-Linked Roles required by EKS, EKS Nodegroups and ELB. Centralises the SLR identifiers in `service_linked_roles.tf` so the permissions boundary statement and the resources stay in sync. Closes [#18](https://github.com/Altinity/terraform-altinitycloud-connect-aws/issues/18).
+
+### Fixed
+- Permissions boundary `ServiceLinkedRoles` statement now also covers `eks.amazonaws.com` (`AWSServiceRoleForAmazonEKS`), preventing `iam:CreateServiceLinkedRole` failures on first EKS cluster creation.
+
 ## [0.3.2](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.1...v0.3.2)
 
 ### Fixed

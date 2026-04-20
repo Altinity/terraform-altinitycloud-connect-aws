@@ -163,6 +163,8 @@ module "altinitycloud_connect_aws" {
 | `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
+| `create_service_linked_roles` | Master switch to let the module create AWS Service-Linked Roles (SLRs). When `false`, `service_linked_roles` is ignored. | `bool` | `false` |
+| `service_linked_roles` | Subset of SLRs to create when `create_service_linked_roles` is `true`. Accepts any of `["eks", "eks-nodegroup", "elb"]`. SLRs are global per account; drop the ones you already have. | `set(string)` | `["eks", "eks-nodegroup", "elb"]` |
 
 For a complete list of variables, see [variables.tf](variables.tf).
 
@@ -176,16 +178,67 @@ For a complete list of variables, see [variables.tf](variables.tf).
 
 ## Troubleshooting
 
-- **Instance fails to start:** Check certificate validity and network connectivity to Altinity.Cloud. Review CloudWatch logs.
-- **Permission errors:** Ensure AWS credentials have sufficient permissions and verify IAM role policies.
+### Instance fails to start
 
-### Need Help?
+Check certificate validity and network connectivity to Altinity.Cloud, then review the CloudWatch logs of the cloud-connect EC2 instance(s).
 
-If you encounter issues not covered above, please [create an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) with detailed information about your problem.
+### Permission errors
+
+Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`.
+
+### Missing AWS Service-Linked Roles
+
+```
+CreateCluster: InvalidParameterException: EKS Cluster Service-Linked Role could not
+be created with cluster role arn:aws:iam::<ACCOUNT>:role/<env>-eks-cluster or cluster
+creator identity. Ensure caller has permission to perform `iam:CreateServiceLinkedRole`
+action
+```
+
+Some AWS services need account-wide Service-Linked Roles (SLRs) that AWS auto-creates the first time the service is used by a sufficiently privileged identity. When `enable_permissions_boundary = true` or `restricted_iam_permissions = true`, that auto-creation can be blocked because the cloud-connect identity is intentionally scoped down. The error above is the most common symptom on EKS, and an analogous one appears on first ELB creation.
+
+You have two ways to fix it:
+
+1. **Pre-create them once** with the AWS CLI (recommended; SLRs are global per account, so this is a one-off):
+
+   ```bash
+   aws iam create-service-linked-role --aws-service-name eks.amazonaws.com
+   aws iam create-service-linked-role --aws-service-name eks-nodegroup.amazonaws.com
+   aws iam create-service-linked-role --aws-service-name elasticloadbalancing.amazonaws.com
+   ```
+
+2. **Let Terraform manage them** by enabling the master switch and (optionally) narrowing the list:
+
+   ```terraform
+   module "altinitycloud_connect_aws" {
+     # ...
+     create_service_linked_roles = true
+     # service_linked_roles defaults to ["eks", "eks-nodegroup", "elb"]
+     # drop the ones already present in your account, e.g.:
+     # service_linked_roles = ["eks", "eks-nodegroup"]
+   }
+   ```
+
+   Existing SLRs will fail with `EntityAlreadyExists` — drop them from `service_linked_roles`, or import them into state:
+
+   ```bash
+   terraform import 'module.altinitycloud_connect_aws.aws_iam_service_linked_role.this["eks"]' \
+     arn:aws:iam::<ACCOUNT>:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS
+   ```
+
+For provider-level troubleshooting (environment provisioning status, API tokens, MFA on destroy, immutable attributes), see the [provider README](https://github.com/altinity/terraform-provider-altinitycloud#troubleshooting).
+
+## Support
+
+If you need help, reach out to us via Slack:
+
+- **Enterprise customers**: Use your organization's dedicated Altinity Slack channel.
+- **Community**: Join the [AltinityDB workspace](https://altinitydbworkspace.slack.com/) and post in the **#terraform** channel.
+- **GitHub Issues**: [Open an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) to report bugs or request features.
 
 ## Contributing
 
-Contributions are welcome! Please submit a Pull Request or open an issue for major changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and advanced configuration examples.
+Contributions are welcome! Please submit a Pull Request or open an issue for major changes. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and setup instructions.
 
 ## License
 
