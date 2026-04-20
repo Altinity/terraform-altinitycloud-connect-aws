@@ -173,15 +173,23 @@ For a complete list of variables, see [variables.tf](variables.tf).
 | `resource_prefix` | AWS resource prefix (when permission boundary enabled) |
 | `permissions_boundary_policy_arn` | ARN of the permission boundary policy |
 
-
 ## Troubleshooting
 
-- **Instance fails to start:** Check certificate validity and network connectivity to Altinity.Cloud. Review CloudWatch logs.
-- **Permission errors:** Ensure AWS credentials have sufficient permissions and verify IAM role policies.
+### Instance fails to start
 
-### Need Help?
+Check certificate validity and network connectivity to Altinity.Cloud, then review the CloudWatch logs of the cloud-connect EC2 instance(s).
 
-If you encounter issues not covered above, please [create an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) with detailed information about your problem.
+### Permission errors
+
+Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`.
+
+## Support
+
+If you need help, reach out to us via Slack:
+
+- **Enterprise customers**: Use your organization's dedicated Altinity Slack channel.
+- **Community**: Join the [AltinityDB workspace](https://altinitydbworkspace.slack.com/) and post in the **#terraform** channel.
+- **GitHub Issues**: [Open an issue](https://github.com/altinity/terraform-altinitycloud-connect-aws/issues/new) to report bugs or request features.
 
 ## Contributing
 
