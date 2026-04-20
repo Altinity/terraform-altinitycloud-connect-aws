@@ -162,13 +162,23 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EKSRole"
+    sid = "ServiceLinkedRoles"
     actions = [
       "iam:GetRole",
+      "iam:CreateServiceLinkedRole",
     ]
     resources = [
-      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/*"
+      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+      "arn:aws:iam::${local.account_id}:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing",
     ]
+    condition {
+      test     = "StringEqualsIfExists"
+      variable = "iam:AWSServiceName"
+      values = [
+        "eks-nodegroup.amazonaws.com",
+        "elasticloadbalancing.amazonaws.com",
+      ]
+    }
   }
 
   statement {
@@ -261,13 +271,23 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
+    sid     = "DenyPassRoleOutsidePrefix"
+    effect  = "Deny"
+    actions = ["iam:PassRole"]
+    not_resources = [
+      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
+    ]
+  }
+
+  statement {
     sid    = "RequirePBForRoles"
     effect = "Deny"
     actions = [
       "iam:CreateRole",
       "iam:AttachRolePolicy",
       "iam:PutRolePermissionsBoundary",
-      "iam:PutRolePolicy"
+      "iam:PutRolePolicy",
+      "iam:UpdateAssumeRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
