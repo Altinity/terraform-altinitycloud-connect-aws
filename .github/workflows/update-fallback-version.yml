@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+          terraform_wrapper: false
+
       - name: Get latest cloud-connect release
         id: latest
         env:
@@ -33,7 +38,8 @@ jobs:
       - name: Update fallback version
         if: steps.latest.outputs.version != steps.current.outputs.version
         run: |
-          sed -i 's/fallback_version\s*=\s*"[^"]*"/fallback_version      = "${{ steps.latest.outputs.version }}"/' main.tf
+          sed -i 's/fallback_version\s*=\s*"[^"]*"/fallback_version = "${{ steps.latest.outputs.version }}"/' main.tf
+          terraform fmt main.tf
 
       - name: Create Pull Request
         if: steps.latest.outputs.version != steps.current.outputs.version

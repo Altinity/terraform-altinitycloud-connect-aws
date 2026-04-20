@@ -1,0 +1,88 @@
+name: Lint & Format
+
+on:
+  pull_request:
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
+      - "CONTRIBUTING.md"
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    name: terraform fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+          terraform_wrapper: false
+
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive -diff
+
+  validate:
+    name: terraform validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+          terraform_wrapper: false
+
+      - name: Init (root module)
+        run: terraform init -backend=false
+
+      - name: Validate (root module)
+        run: terraform validate -no-color
+
+      - name: Validate examples
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for dir in examples/*/; do
+            echo "::group::validate $dir"
+            (cd "$dir" && terraform init -backend=false && terraform validate -no-color)
+            echo "::endgroup::"
+          done
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Cache TFLint plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+
+      - name: TFLint init
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint (root module)
+        run: tflint --recursive --config "$(pwd)/.tflint.hcl"
