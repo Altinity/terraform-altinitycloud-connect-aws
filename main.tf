@@ -171,7 +171,7 @@ resource "aws_autoscaling_group" "this" {
 
   wait_for_capacity_timeout = "7m"
   vpc_zone_identifier = length(var.subnets) > 0 ? var.subnets : (
-    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this.*.id
+    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this[*].id
   )
 
   dynamic "tag" {
