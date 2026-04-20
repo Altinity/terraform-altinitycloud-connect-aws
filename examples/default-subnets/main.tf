@@ -9,8 +9,11 @@ resource "altinitycloud_env_certificate" "this" {
 }
 
 module "altinitycloud_connect_aws" {
-  source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.3.0"
+  # When using this example outside of this repository, replace the local
+  # `source` with the public Terraform Registry reference:
+  #   source  = "altinity/connect-aws/altinitycloud"
+  #   version = "~> 0.3"
+  source = "../.."
 
   pem                 = altinitycloud_env_certificate.this.pem
   use_default_subnets = true
