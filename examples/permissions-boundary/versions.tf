@@ -6,5 +6,9 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+    altinitycloud = {
+      source  = "altinity/altinitycloud"
+      version = ">= 0.5"
+    }
   }
 }

@@ -20,7 +20,7 @@ data "http" "cloud_connect_latest" {
 }
 
 locals {
-  fallback_version      = "0.133.0"
+  fallback_version = "0.133.0"
   cloud_connect_version = coalesce(
     var.cloud_connect_version,
     try(trimprefix(jsondecode(data.http.cloud_connect_latest[0].response_body).tag_name, "v"), ""),
@@ -171,7 +171,7 @@ resource "aws_autoscaling_group" "this" {
 
   wait_for_capacity_timeout = "7m"
   vpc_zone_identifier = length(var.subnets) > 0 ? var.subnets : (
-    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this.*.id
+    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this[*].id
   )
 
   dynamic "tag" {
