@@ -88,6 +88,25 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     resources = ["*"]
   }
 
+  # AcceptVpcPeeringConnection does not support aws:RequestTag and the API does
+  # not accept TagSpecifications, so the pcx cannot be tagged before/at accept
+  # time. Scope this permission to peering connections whose accepter VPC lives
+  # in this env's account/region; the env tag is applied immediately after.
+  statement {
+    sid = "AcceptVPCPeering"
+    actions = [
+      "ec2:AcceptVpcPeeringConnection",
+      "ec2:RejectVpcPeeringConnection",
+      "ec2:ModifyVpcPeeringConnectionOptions",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "ArnLike"
+      variable = "ec2:AccepterVpc"
+      values   = ["arn:aws:ec2:${local.region}:${local.account_id}:vpc/*"]
+    }
+  }
+
   statement {
     sid = "EKSAuth"
     actions = [
