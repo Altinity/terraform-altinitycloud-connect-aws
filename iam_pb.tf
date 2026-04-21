@@ -88,6 +88,22 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     resources = ["*"]
   }
 
+  # AcceptVpcPeeringConnection doesn't support RequestTag; scope by accepter VPC instead
+  statement {
+    sid = "AcceptVPCPeering"
+    actions = [
+      "ec2:AcceptVpcPeeringConnection",
+      "ec2:RejectVpcPeeringConnection",
+      "ec2:ModifyVpcPeeringConnectionOptions",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "ArnLike"
+      variable = "ec2:AccepterVpc"
+      values   = ["arn:aws:ec2:${local.region}:${local.account_id}:vpc/*"]
+    }
+  }
+
   statement {
     sid = "EKSAuth"
     actions = [
