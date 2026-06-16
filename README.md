@@ -150,6 +150,7 @@ module "altinitycloud_connect_aws" {
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
 | `replicas` | Number of cloud-connect instances (1-3) | `number` | `1` |
+| `heartbeat_timeout` | Maximum time (in seconds) for the ASG launch lifecycle hook to complete before the instance is abandoned | `number` | `420` |
 | `allow_altinity_access` | Allow Altinity break-glass access | `bool` | `true` |
 | `break_glass_principal` | IAM principal used for break-glass access | `string` | `"arn:aws:iam::313342380333:role/AnywhereAdmin"` |
 | `tags` | Resource tags | `map(string)` | `{}` |

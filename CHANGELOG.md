@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.2...v0.3.3)
+
+### Added
+- Add `heartbeat_timeout` variable to configure the ASG launch lifecycle hook timeout [e599774](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/e599774).
+- Add linting, best dev setup and better documentation [66c64c0](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/66c64c0) & [6d4f84b](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/6d4f84b).
+
+### Fixed
+
+- Add missing VPC peering permissions to permissions boundary [56bbc58](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/56bbc58).
+
 ## [0.3.2](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.1...v0.3.2)
 
 ### Fixed
