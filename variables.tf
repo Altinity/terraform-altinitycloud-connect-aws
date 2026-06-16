@@ -112,6 +112,12 @@ variable "replicas" {
   }
 }
 
+variable "heartbeat_timeout" {
+  description = "Maximum time (in seconds) for the ASG launch lifecycle hook to complete before the instance is abandoned."
+  type        = number
+  default     = 420
+}
+
 variable "allow_altinity_access" {
   description = "Allow Altinity access to the cloud-connect EC2 instance(s) (part of break-glass procedure)."
   type        = bool
