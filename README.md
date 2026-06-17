@@ -178,11 +178,81 @@ For a complete list of variables, see [variables.tf](variables.tf).
 
 ### Instance fails to start
 
-Check certificate validity and network connectivity to Altinity.Cloud, then review the CloudWatch logs of the cloud-connect EC2 instance(s).
+Check certificate validity and network connectivity to Altinity.Cloud. If instances terminate shortly after launch, use the sections below to capture bootstrap logs before the Auto Scaling group replaces them.
+
+### Get logs
+
+**From a recently terminated instance (console output):**
+
+```bash
+aws ec2 get-console-output --instance-id <instance-id> --latest \
+  --query Output --output text | tail -100
+```
+
+**From a running instance (SSM):**
+
+```bash
+sudo tail -100 /var/log/cloud-init-output.log
+sudo tail -100 /var/log/cloud-init.log
+sudo docker ps -a
+sudo docker logs altinitycloud-connect
+```
+
+### Increase lifecycle hook timeout
+
+Set `heartbeat_timeout` (seconds) when applying the module — requires version `>= 0.3.3`:
+
+```terraform
+module "altinitycloud_connect_aws" {
+  # ...
+  heartbeat_timeout = 7200
+}
+```
+
+This extends how long the ASG waits for the launch hook to complete before abandoning an instance that never calls `complete-lifecycle-action`.
+
+### When user-data fails early
+
+If the user-data script exits with a non-zero status, an `EXIT` trap calls `complete-lifecycle-action ABANDON` and the instance terminates within about a minute. In that case, raising `heartbeat_timeout` does not help — the instance is abandoned by the script, not by the hook timing out.
+
+To inspect a failed bootstrap:
+
+1. **Standalone instance (recommended)** — see below. The ASG will not terminate it, so you can use SSM even after user-data fails.
+
+2. **Console output** — run `get-console-output` on the most recently terminated instance (see [Get logs](#get-logs)).
+
+3. **Pause the ASG loop** — suspend scaling processes while debugging an ASG-launched instance:
+
+```bash
+aws autoscaling suspend-processes \
+  --auto-scaling-group-name <asg-name> \
+  --scaling-processes Launch Terminate
+```
+
+Suspending `Terminate` can keep a failed instance running long enough to connect via SSM. Resume when finished:
+
+```bash
+aws autoscaling resume-processes \
+  --auto-scaling-group-name <asg-name> \
+  --scaling-processes Launch Terminate
+```
+
+### Debug with a standalone instance
+
+Launch an EC2 instance from the same Launch Template **outside** the ASG. It runs the same user-data but won't be terminated by the ASG:
+
+```bash
+aws ec2 run-instances \
+  --launch-template "LaunchTemplateId=<lt-id>,Version=\$Latest" \
+  --subnet-id "<subnet-id>" \
+  --count 1
+```
+
+Connect via SSM and run the log commands above. On a standalone instance, `complete-lifecycle-action` fails at the end of user-data — that is expected; check the earlier lines in `cloud-init-output.log`.
 
 ### Permission errors
 
-Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`.
+Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`. When `enable_permissions_boundary` is true, the instance role also needs `autoscaling:CompleteLifecycleAction` on the ASG (scoped by the `altinity:cloud/env` tag) and `ssm:GetParameter` on the PEM parameter.
 
 ## Support
 
