@@ -117,6 +117,21 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
+    sid = "EKSAccessEntries"
+    actions = [
+      "eks:DescribeAccessEntry",
+      "eks:DeleteAccessEntry",
+      "eks:ListAssociatedAccessPolicies",
+      "eks:AssociateAccessPolicy",
+      "eks:DisassociateAccessPolicy",
+      "eks:TagResource",
+    ]
+    resources = [
+      "arn:aws:eks:${local.region}:${local.account_id}:access-entry/${local.resource_prefix}/*"
+    ]
+  }
+
+  statement {
     sid = "EKSNodePoolsAMIs"
     actions = [
       "ec2:RunInstances"
