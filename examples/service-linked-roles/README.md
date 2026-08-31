@@ -31,4 +31,17 @@ module "altinitycloud_connect_aws" {
 
 ## Notes
 
-Service-linked roles are account-global. `terraform destroy` attempts to delete the roles this module created; AWS rejects the deletion while they are still in use by an ELB or an EKS nodegroup.
+Service-linked roles are account-global, so the module has to tell apart the roles it created from the ones that were already there. It marks the roles it creates by setting their description to `Service-linked role created by Altinity.Cloud Anywhere (<env-name>)`, and on later plans it keeps managing exactly those:
+
+- Role missing: created and managed by this module.
+- Role exists with this env's marker: kept under management, no changes planned.
+- Role exists without it (created by AWS on demand, or by another env in the same account): left untouched.
+
+`terraform destroy` attempts to delete the roles this module created; AWS rejects the deletion while they are still in use by an ELB or an EKS nodegroup.
+
+If the Terraform state is lost while the roles still carry this env's marker, the next apply fails with `EntityAlreadyExists`. Adopt them back instead of editing the description by hand:
+
+```shell
+terraform import 'module.altinitycloud_connect_aws.aws_iam_service_linked_role.this["elasticloadbalancing.amazonaws.com"]' \
+  arn:aws:iam::123456789012:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing
+```

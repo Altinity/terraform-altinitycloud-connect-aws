@@ -187,9 +187,10 @@ module "altinitycloud_connect_aws" {
 
 > **Note:** `create_service_linked_roles` creates `AWSServiceRoleForElasticLoadBalancing` and
 > `AWSServiceRoleForAmazonEKSNodegroup` only when they are missing from the account, and needs `iam:ListRoles`
-> plus `iam:CreateServiceLinkedRole` on the Terraform credentials. Service-linked roles are account-global, so
-> `terraform destroy` attempts to delete the ones this module created (AWS rejects the deletion while they are
-> still in use). See [examples/service-linked-roles](examples/service-linked-roles).
+> plus `iam:CreateServiceLinkedRole` on the Terraform credentials. Roles that already exist are left untouched.
+> Service-linked roles are account-global, so `terraform destroy` attempts to delete the ones this module
+> created (AWS rejects the deletion while they are still in use).
+> See [examples/service-linked-roles](examples/service-linked-roles).
 
 For a complete list of variables, see [variables.tf](variables.tf).
 
