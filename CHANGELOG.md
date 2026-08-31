@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Add `create_service_linked_roles` variable (default `false`) to create `AWSServiceRoleForElasticLoadBalancing` and `AWSServiceRoleForAmazonEKSNodegroup`, skipping any that already exist in the account. Created roles are marked with a per-env description so later plans keep managing them instead of planning a destroy [#42](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/42).
+- Add `service_linked_roles` variable (default `[]`) to create a service-linked role per AWS service name listed, for accounts where the credentials used at runtime cannot create them on demand [#42](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/42).
 
 ## [0.3.4](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.3...v0.3.4)
 

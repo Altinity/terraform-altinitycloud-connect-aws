@@ -1,11 +1,13 @@
 # Service-Linked Roles
 
-Creates the AWS service-linked roles required by Altinity.Cloud Anywhere, skipping any that already exist in the account:
+Creates the AWS service-linked roles that Altinity.Cloud Anywhere needs:
 
-- `AWSServiceRoleForElasticLoadBalancing`
-- `AWSServiceRoleForAmazonEKSNodegroup`
+| Service name | Role |
+|--------------|------|
+| `elasticloadbalancing.amazonaws.com` | `AWSServiceRoleForElasticLoadBalancing` |
+| `eks-nodegroup.amazonaws.com` | `AWSServiceRoleForAmazonEKSNodegroup` |
 
-Both roles are normally created on demand by AWS the first time an ELB or an EKS managed nodegroup is provisioned. Enable this variable when the credentials used at runtime are not allowed to create them, so the environment fails to come up.
+AWS normally creates both on demand, the first time an ELB or an EKS managed nodegroup is provisioned. List them here when the credentials used at runtime aren't allowed to create them, so the environment fails to come up.
 
 ## Usage
 
@@ -20,28 +22,34 @@ module "altinitycloud_connect_aws" {
 
   pem = altinitycloud_env_certificate.this.pem
 
-  create_service_linked_roles = true
+  service_linked_roles = [
+    "elasticloadbalancing.amazonaws.com",
+    "eks-nodegroup.amazonaws.com",
+  ]
 }
 ```
 
 ## Prerequisites
 
 - An [Altinity.Cloud](https://altinity.cloud) account with the [Terraform provider](https://github.com/altinity/terraform-provider-altinitycloud) configured.
-- `iam:ListRoles` and `iam:CreateServiceLinkedRole` on the credentials running Terraform.
+- `iam:CreateServiceLinkedRole` on the credentials running Terraform.
 
-## Notes
+## List only the roles that are missing
 
-Service-linked roles are account-global, so the module has to tell apart the roles it created from the ones that were already there. It marks the roles it creates by setting their description to `Service-linked role created by Altinity.Cloud Anywhere (<env-name>)`, and on later plans it keeps managing exactly those:
+Service-linked roles are account-global, and creating one that already exists fails with `EntityAlreadyExists`. Check before listing a role here:
 
-- Role missing: created and managed by this module.
-- Role exists with this env's marker: kept under management, no changes planned.
-- Role exists without it (created by AWS on demand, or by another env in the same account): left untouched.
+```shell
+aws iam get-role --role-name AWSServiceRoleForElasticLoadBalancing
+aws iam get-role --role-name AWSServiceRoleForAmazonEKSNodegroup
+```
 
-`terraform destroy` attempts to delete the roles this module created; AWS rejects the deletion while they are still in use by an ELB or an EKS nodegroup.
-
-If the Terraform state is lost while the roles still carry this env's marker, the next apply fails with `EntityAlreadyExists`. Adopt them back instead of editing the description by hand:
+Any that already exist should be left out of `service_linked_roles`; nothing else is needed for them. To bring an existing role under management instead, import it:
 
 ```shell
 terraform import 'module.altinitycloud_connect_aws.aws_iam_service_linked_role.this["elasticloadbalancing.amazonaws.com"]' \
   arn:aws:iam::123456789012:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing
 ```
+
+## Notes
+
+The module manages exactly the services listed in `service_linked_roles` and nothing else, so `terraform destroy` deletes only the roles that were explicitly opted into. AWS rejects the deletion while a role is still in use by an ELB or an EKS nodegroup.

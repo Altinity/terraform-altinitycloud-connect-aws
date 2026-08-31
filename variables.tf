@@ -196,13 +196,23 @@ variable "create_user_permissions" {
   default     = true
 }
 
-variable "create_service_linked_roles" {
-  type        = bool
+variable "service_linked_roles" {
+  type        = set(string)
   description = <<EOT
-Create the AWS service-linked roles required by Altinity.Cloud Anywhere
-(AWSServiceRoleForElasticLoadBalancing, AWSServiceRoleForAmazonEKSNodegroup), only if they don't already exist.
+AWS service names to create service-linked roles for, e.g.
+["elasticloadbalancing.amazonaws.com", "eks-nodegroup.amazonaws.com"].
 
-Requires iam:ListRoles and iam:CreateServiceLinkedRole on the Terraform credentials.
+Only list roles that don't exist in the account yet. AWS normally creates them on demand on first use,
+so creating one that is already there fails with EntityAlreadyExists. To check:
+
+  aws iam get-role --role-name AWSServiceRoleForAmazonEKSNodegroup
+
+Requires iam:CreateServiceLinkedRole on the Terraform credentials.
 EOT
-  default     = false
+  default     = []
+
+  validation {
+    condition     = alltrue([for service in var.service_linked_roles : can(regex("^[a-z0-9.-]+\\.amazonaws\\.com$", service))])
+    error_message = "Each entry must be an AWS service name, such as \"eks-nodegroup.amazonaws.com\"."
+  }
 }

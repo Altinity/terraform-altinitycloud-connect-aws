@@ -138,9 +138,11 @@ module "altinitycloud_connect_aws" {
 
   pem = altinitycloud_env_certificate.this.pem
 
-  # Creates AWSServiceRoleForElasticLoadBalancing and
-  # AWSServiceRoleForAmazonEKSNodegroup only if missing from the account.
-  create_service_linked_roles = true
+  # Only list roles that don't exist in the account yet.
+  service_linked_roles = [
+    "elasticloadbalancing.amazonaws.com",
+    "eks-nodegroup.amazonaws.com",
+  ]
 }
 ```
 
@@ -183,14 +185,13 @@ module "altinitycloud_connect_aws" {
 | `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
-| `create_service_linked_roles` | Create required AWS service-linked roles if missing | `bool` | `false` |
+| `service_linked_roles` | AWS service names to create service-linked roles for | `set(string)` | `[]` |
 
-> **Note:** `create_service_linked_roles` creates `AWSServiceRoleForElasticLoadBalancing` and
-> `AWSServiceRoleForAmazonEKSNodegroup` only when they are missing from the account, and needs `iam:ListRoles`
-> plus `iam:CreateServiceLinkedRole` on the Terraform credentials. Roles that already exist are left untouched.
-> Service-linked roles are account-global, so `terraform destroy` attempts to delete the ones this module
-> created (AWS rejects the deletion while they are still in use).
-> See [examples/service-linked-roles](examples/service-linked-roles).
+> **Note:** `service_linked_roles` creates a service-linked role per AWS service name listed, using
+> `iam:CreateServiceLinkedRole`. AWS creates these roles on demand on first use, so only list the ones
+> missing from the account: creating one that already exists fails with `EntityAlreadyExists`. Check with
+> `aws iam get-role --role-name AWSServiceRoleForElasticLoadBalancing`. See
+> [examples/service-linked-roles](examples/service-linked-roles).
 
 For a complete list of variables, see [variables.tf](variables.tf).
 

@@ -1,5 +1,5 @@
 # Service-Linked Roles: create the AWS service-linked roles required by
-# Altinity.Cloud Anywhere, but only the ones missing from the account.
+# Altinity.Cloud Anywhere in an account where they don't exist yet.
 
 provider "aws" {
   region = "us-east-1"
@@ -10,10 +10,13 @@ resource "altinitycloud_env_certificate" "this" {
 }
 
 module "altinitycloud_connect_aws" {
-  # Local source: create_service_linked_roles is not in a published release yet.
+  # Local source: service_linked_roles is not in a published release yet.
   source = "../../"
 
   pem = altinitycloud_env_certificate.this.pem
 
-  create_service_linked_roles = true
+  service_linked_roles = [
+    "elasticloadbalancing.amazonaws.com",
+    "eks-nodegroup.amazonaws.com",
+  ]
 }
