@@ -195,3 +195,14 @@ variable "create_user_permissions" {
   description = "Create user permissions for the IAM role."
   default     = true
 }
+
+variable "create_service_linked_roles" {
+  type        = bool
+  description = <<EOT
+Create the AWS service-linked roles required by Altinity.Cloud Anywhere
+(AWSServiceRoleForElasticLoadBalancing, AWSServiceRoleForAmazonEKSNodegroup), only if they don't already exist.
+
+Requires iam:ListRoles and iam:CreateServiceLinkedRole on the Terraform credentials.
+EOT
+  default     = false
+}

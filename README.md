@@ -164,6 +164,11 @@ module "altinitycloud_connect_aws" {
 | `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
+| `create_service_linked_roles` | Create required AWS service-linked roles if missing | `bool` | `false` |
+
+> **Note:** `create_service_linked_roles` only creates roles that are missing from the account. Service-linked
+> roles are account-global, so `terraform destroy` will attempt to delete the ones this module created (AWS
+> rejects the deletion while the roles are still in use).
 
 For a complete list of variables, see [variables.tf](variables.tf).
 
