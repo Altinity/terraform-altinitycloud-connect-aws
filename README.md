@@ -187,9 +187,11 @@ module "altinitycloud_connect_aws" {
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
 | `service_linked_roles` | AWS service names to create service-linked roles for | `set(string)` | `[]` |
 
-> **Note:** `service_linked_roles` creates a service-linked role per AWS service name listed, using
-> `iam:CreateServiceLinkedRole`. AWS creates these roles on demand on first use, so only list the ones
-> missing from the account: creating one that already exists fails with `EntityAlreadyExists`. Check with
+> **Note:** `service_linked_roles` creates a service-linked role per AWS service name listed. It needs
+> `iam:CreateServiceLinkedRole` on the Terraform credentials, plus `iam:DeleteServiceLinkedRole` and
+> `iam:GetServiceLinkedRoleDeletionStatus` to remove an entry from the list or destroy the module.
+> AWS creates these roles on demand on first use, so only list the ones missing from the account:
+> creating one that already exists fails with `EntityAlreadyExists`. Check with
 > `aws iam get-role --role-name AWSServiceRoleForElasticLoadBalancing`. See
 > [examples/service-linked-roles](examples/service-linked-roles).
 

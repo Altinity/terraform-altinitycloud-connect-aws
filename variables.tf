@@ -207,7 +207,9 @@ so creating one that is already there fails with EntityAlreadyExists. To check:
 
   aws iam get-role --role-name AWSServiceRoleForAmazonEKSNodegroup
 
-Requires iam:CreateServiceLinkedRole on the Terraform credentials.
+Requires iam:CreateServiceLinkedRole on the Terraform credentials, plus
+iam:DeleteServiceLinkedRole and iam:GetServiceLinkedRoleDeletionStatus to remove an entry
+from this list or destroy the module.
 EOT
   default     = []
 

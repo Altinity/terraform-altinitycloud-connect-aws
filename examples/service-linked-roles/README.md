@@ -32,7 +32,9 @@ module "altinitycloud_connect_aws" {
 ## Prerequisites
 
 - An [Altinity.Cloud](https://altinity.cloud) account with the [Terraform provider](https://github.com/altinity/terraform-provider-altinitycloud) configured.
-- `iam:CreateServiceLinkedRole` on the credentials running Terraform.
+- `iam:CreateServiceLinkedRole` on the credentials running Terraform, plus
+  `iam:DeleteServiceLinkedRole` and `iam:GetServiceLinkedRoleDeletionStatus` to remove a role again
+  (the provider deletes asynchronously and polls the deletion status).
 
 ## List only the roles that are missing
 
