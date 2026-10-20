@@ -21,6 +21,57 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     resources = ["*"]
   }
 
+  # The environment selects its KMS key after this module creates the boundary.
+  # The reconciler-created grant role scopes these actions to that key.
+  statement {
+    sid = "KMSGrantLifecycle"
+    actions = [
+      "kms:DescribeKey",
+      "kms:RetireGrant",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "KMSAutoScalingGrant"
+    actions   = ["kms:CreateGrant"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "kms:GranteePrincipal"
+      values = [
+        "arn:${data.aws_partition.current.partition}:iam::${local.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+      ]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "kms:RetiringPrincipal"
+      values = [
+        "arn:${data.aws_partition.current.partition}:iam::${local.account_id}:role/${local.resource_prefix}-kms-grant",
+      ]
+    }
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "kms:GrantOperations"
+      values = [
+        "Encrypt",
+        "Decrypt",
+        "ReEncryptFrom",
+        "ReEncryptTo",
+        "GenerateDataKey",
+        "GenerateDataKeyWithoutPlaintext",
+        "DescribeKey",
+        "CreateGrant",
+      ]
+    }
+  }
+
+  statement {
+    sid       = "KMSListRetirableGrants"
+    actions   = ["kms:ListRetirableGrants"]
+    resources = ["*"]
+  }
+
   statement {
     sid = "RequireRequestTag"
     actions = [
