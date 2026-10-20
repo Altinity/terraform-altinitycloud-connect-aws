@@ -28,6 +28,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     actions = [
       "kms:DescribeKey",
       "kms:RetireGrant",
+      "kms:ListRetirableGrants",
     ]
     resources = ["*"]
   }
@@ -64,12 +65,6 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
         "CreateGrant",
       ]
     }
-  }
-
-  statement {
-    sid       = "KMSListRetirableGrants"
-    actions   = ["kms:ListRetirableGrants"]
-    resources = ["*"]
   }
 
   statement {
