@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.4...v0.3.5)
+
+### Changed
+- Bump default AMI to Amazon Linux 2023 `al2023-ami-2023.12.20261029.0-kernel-6.1-{x86_64,arm64}`. Existing deployments without `ami_name` set will have the instance replaced on next apply [f26adf0](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/f26adf0).
+
+### Fixed
+- Allow suffixed names for the `AWSServiceRoleForAmazonEKSNodegroup` and `AWSServiceRoleForElasticLoadBalancing` service-linked roles in the permissions boundary [#43](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/43).
+
 ## [0.3.4](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.3...v0.3.4)
 
 ### Fixed
