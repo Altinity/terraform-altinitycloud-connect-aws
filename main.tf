@@ -30,7 +30,7 @@ locals {
 
   env_name = regex("CN=([^,]+)", data.tls_certificate.env_pem.certificates[0].subject)[0]
   ami_name = (var.ami_name != "" ? var.ami_name :
-  "al2023-ami-2023.2.20231113.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
+  "al2023-ami-2023.12.20261029.0-kernel-6.1-${data.aws_ec2_instance_type.current.supported_architectures[0]}")
   name = "altinitycloud-connect-${random_id.this.hex}"
   tags = merge(var.tags, {
     Name                 = local.name
