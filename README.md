@@ -138,7 +138,7 @@ module "altinitycloud_connect_aws" {
 | Name | Description | Type | Default |
 |------|-------------|------|---------|
 | `url` | Altinity.Cloud Anywhere base URL | `string` | `"https://anywhere.altinity.cloud"` |
-| `image` | Custom Docker image (defaults to `altinity/cloud-connect:$version`) | `string` | `"altinity/cloud-connect:0.133.0"` |
+| `image` | Custom Docker image (defaults to `altinity/cloud-connect:$version`) | `string` | `"altinity/cloud-connect:0.172.4"` |
 | `pem_ssm_parameter_name` | AWS SSM Parameter containing the certificate | `string` | `""` |
 | `ca_crt` | Custom CA certificate to trust for cloud-connect | `string` | `""` |
 | `host_aliases` | Host aliases for the EC2 instance(s) | `map(string)` | `{}` |
