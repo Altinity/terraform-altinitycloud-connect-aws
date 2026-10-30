@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.5...v0.3.6)
+
+### Changed
+- Bump fallback cloud-connect version to `0.172.4`, used when the latest release can't be resolved from GitHub and `cloud_connect_version`/`image` are unset [16c3394](https://github.com/altinity/terraform-altinitycloud-connect-aws/commit/16c3394).
+
 ## [0.3.5](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.4...v0.3.5)
 
 ### Changed
