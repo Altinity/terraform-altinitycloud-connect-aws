@@ -180,8 +180,8 @@ variable "external_buckets" {
 
 variable "require_imdsv2" {
   type        = bool
-  description = "[EXPERIMENTAL] Whether to require IMDSv2 (Instance Metadata Service version 2) for EC2 instances."
-  default     = false
+  description = "[DEPRECATED] No effect. IMDSv2 is always required. Will be removed in a future release."
+  default     = null
 }
 
 variable "restricted_iam_permissions" {
