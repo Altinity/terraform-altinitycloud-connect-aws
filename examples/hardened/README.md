@@ -1,6 +1,6 @@
 # Hardened
 
-Security-focused configuration: IMDSv2 required, restricted IAM permissions, Altinity access disabled, and custom security groups.
+Security-focused configuration: restricted IAM permissions, Altinity access disabled, and custom security groups.
 
 ## Usage
 
@@ -15,7 +15,6 @@ module "altinitycloud_connect_aws" {
 
   pem = altinitycloud_env_certificate.this.pem
 
-  require_imdsv2             = true
   restricted_iam_permissions = true
   allow_altinity_access      = false
 

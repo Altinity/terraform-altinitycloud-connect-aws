@@ -87,7 +87,6 @@ module "altinitycloud_connect_aws" {
 
   # Security configuration
   allow_altinity_access = false
-  require_imdsv2       = true
 
   # Optional tags
   tags = {
@@ -161,7 +160,7 @@ module "altinitycloud_connect_aws" {
 | `region` | Override AWS region for lookups | `string` | `""` |
 | `aws_account_id` | Override AWS account ID for lookups | `string` | `""` |
 | `external_buckets` | Additional S3 buckets to allow access | `list(string)` | `[]` |
-| `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
+| `require_imdsv2` | **Deprecated**, no effect. IMDSv2 is always required | `bool` | `null` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
 
