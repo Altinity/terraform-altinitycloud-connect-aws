@@ -199,6 +199,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "iam:CreateServiceLinkedRole",
     ]
     resources = [
+      "arn:aws:iam::${local.account_id}:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS*",
       "arn:aws:iam::${local.account_id}:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup*",
       "arn:aws:iam::${local.account_id}:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing*",
     ]
@@ -206,6 +207,7 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       test     = "StringEqualsIfExists"
       variable = "iam:AWSServiceName"
       values = [
+        "eks.amazonaws.com",
         "eks-nodegroup.amazonaws.com",
         "elasticloadbalancing.amazonaws.com",
       ]
