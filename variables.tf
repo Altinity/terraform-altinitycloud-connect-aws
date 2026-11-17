@@ -74,6 +74,26 @@ variable "map_public_ip_on_launch" {
   default     = true
 }
 
+variable "enable_nat_gateway" {
+  description = <<EOT
+Route cloud-connect outbound traffic through a NAT gateway with a static Elastic IP (see "nat_public_ip" output).
+cloud-connect EC2 instance(s) are launched without public IPs, regardless of "map_public_ip_on_launch".
+
+Only applies when this module creates the VPC ("subnets" is empty and "use_default_subnets" is false).
+EOT
+  type        = bool
+  default     = false
+}
+
+variable "nat_eip_allocation_id" {
+  description = <<EOT
+Allocation ID of an existing Elastic IP to attach to the NAT gateway (e.g. eipalloc-0123456789abcdef0).
+If empty, this module allocates a new Elastic IP. Only used when "enable_nat_gateway" is true.
+EOT
+  type        = string
+  default     = ""
+}
+
 variable "use_default_subnets" {
   description = <<EOT
 Use default subnets to launch cloud-connect EC2 instance(s).

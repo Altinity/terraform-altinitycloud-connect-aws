@@ -13,6 +13,11 @@ output "autoscaling_group_name" {
   description = "Name of the Auto Scaling Group"
 }
 
+output "nat_public_ip" {
+  value       = local.create_nat ? aws_nat_gateway.this[0].public_ip : null
+  description = "Static public IP used by cloud-connect for outbound traffic, only set if \"enable_nat_gateway\" is true"
+}
+
 output "resource_prefix" {
   value       = var.enable_permissions_boundary ? local.resource_prefix : null
   description = "AWS resource prefix, only set if permission boundary is enabled"

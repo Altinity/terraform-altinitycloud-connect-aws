@@ -106,7 +106,7 @@ resource "aws_launch_template" "this" {
     name = aws_iam_instance_profile.this.name
   }
   network_interfaces {
-    associate_public_ip_address = var.map_public_ip_on_launch
+    associate_public_ip_address = var.map_public_ip_on_launch && !local.create_nat
     security_groups             = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
   }
 
@@ -182,4 +182,7 @@ resource "aws_autoscaling_group" "this" {
       propagate_at_launch = true
     }
   }
+
+  # instances fail their launch hook if they boot before the NAT route exists
+  depends_on = [aws_route_table_association.private]
 }

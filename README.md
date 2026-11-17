@@ -97,6 +97,33 @@ module "altinitycloud_connect_aws" {
 }
 ```
 
+### Private Subnets with NAT Gateway
+
+Use this when AWS API calls must come from a known, static IP (e.g. an organization SCP that only allows approved egress IPs).
+
+```terraform
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
+module "altinitycloud_connect_aws" {
+  source  = "altinity/connect-aws/altinitycloud"
+  version = "~> 0.4.0"
+
+  pem = altinitycloud_env_certificate.this.pem
+
+  # cloud-connect runs without a public IP, all outbound traffic leaves through the NAT gateway
+  enable_nat_gateway = true
+
+  # Optional: use an Elastic IP allocated in advance (so it can be allowlisted before applying)
+  # nat_eip_allocation_id = "eipalloc-0123456789abcdef0"
+}
+
+output "cloud_connect_egress_ip" {
+  value = module.altinitycloud_connect_aws.nat_public_ip
+}
+```
+
 ### Using Existing VPC
 
 ```terraform
@@ -146,6 +173,8 @@ module "altinitycloud_connect_aws" {
 | `use_default_subnets` | Use default VPC subnets | `bool` | `false` |
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
 | `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
+| `enable_nat_gateway` | Route outbound traffic through a NAT gateway with a static Elastic IP (only when the module creates the VPC) | `bool` | `false` |
+| `nat_eip_allocation_id` | Existing Elastic IP allocation ID for the NAT gateway (allocates a new one if empty) | `string` | `""` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
@@ -173,6 +202,7 @@ For a complete list of variables, see [variables.tf](variables.tf).
 |------|-------------|
 | `resource_prefix` | AWS resource prefix (when permission boundary enabled) |
 | `permissions_boundary_policy_arn` | ARN of the permission boundary policy |
+| `nat_public_ip` | Static public IP used for outbound traffic (when `enable_nat_gateway` is true) |
 
 ## Troubleshooting
 
