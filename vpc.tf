@@ -1,6 +1,9 @@
 locals {
-  create_vpc = !var.use_default_subnets && length(var.subnets) == 0
-  create_nat = local.create_vpc && var.enable_nat_gateway
+  create_vpc   = !var.use_default_subnets && length(var.subnets) == 0
+  create_nat   = local.create_vpc && var.enable_nat_gateway
+  subnet_count = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
+  nat_count = !local.create_nat ? 0 : min(local.subnet_count,
+  length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : var.nat_gateway_count)
 }
 
 resource "aws_vpc" "this" {
@@ -18,9 +21,11 @@ resource "aws_internet_gateway" "this" {
 resource "aws_default_route_table" "this" {
   count                  = local.create_vpc ? 1 : 0
   default_route_table_id = aws_vpc.this[0].default_route_table_id
+  # with NAT, the default route must not lead to the IGW: a subnet that loses its association fails closed
   route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this[0].id
+    cidr_block     = "0.0.0.0/0"
+    gateway_id     = local.create_nat ? null : aws_internet_gateway.this[0].id
+    nat_gateway_id = local.create_nat ? aws_nat_gateway.this[0].id : null
   }
   tags = local.tags
 }
@@ -48,7 +53,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_subnet" "this" {
-  count                   = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
+  count                   = local.subnet_count
   vpc_id                  = aws_vpc.this[0].id
   cidr_block              = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 8, count.index + 1) : cidrsubnet(var.cidr_block, 2, count.index + 1)
   map_public_ip_on_launch = !local.create_nat
@@ -59,48 +64,65 @@ resource "aws_subnet" "this" {
 }
 
 resource "aws_subnet" "nat" {
-  count             = local.create_nat ? 1 : 0
+  count             = local.nat_count
   vpc_id            = aws_vpc.this[0].id
-  cidr_block        = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 8, 0) : cidrsubnet(var.cidr_block, 2, 0)
-  availability_zone = data.aws_availability_zones.available[0].names[0]
+  cidr_block        = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 12, count.index) : cidrsubnet(var.cidr_block, 4, count.index)
+  availability_zone = data.aws_availability_zones.available[0].names[count.index]
   tags = merge(local.tags, {
-    Name = "${local.name}-nat"
+    Name = "${local.name}-nat-${count.index}"
   })
 }
 
-resource "aws_eip" "nat" {
-  count  = local.create_nat && var.nat_eip_allocation_id == "" ? 1 : 0
-  domain = "vpc"
-  tags = merge(local.tags, {
-    Name = "${local.name}-nat"
-  })
-  depends_on = [aws_internet_gateway.this]
-}
-
-resource "aws_nat_gateway" "this" {
-  count         = local.create_nat ? 1 : 0
-  allocation_id = var.nat_eip_allocation_id != "" ? var.nat_eip_allocation_id : aws_eip.nat[0].id
-  subnet_id     = aws_subnet.nat[0].id
-  tags = merge(local.tags, {
-    Name = local.name
-  })
-  depends_on = [aws_internet_gateway.this, aws_default_route_table.this]
-}
-
-resource "aws_route_table" "private" {
+resource "aws_route_table" "public" {
   count  = local.create_nat ? 1 : 0
   vpc_id = aws_vpc.this[0].id
   route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[0].id
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this[0].id
   }
   tags = merge(local.tags, {
-    Name = "${local.name}-private"
+    Name = "${local.name}-public"
+  })
+}
+
+resource "aws_route_table_association" "public" {
+  count          = local.nat_count
+  subnet_id      = aws_subnet.nat[count.index].id
+  route_table_id = aws_route_table.public[0].id
+}
+
+resource "aws_eip" "nat" {
+  count  = length(var.nat_eip_allocation_ids) > 0 ? 0 : local.nat_count
+  domain = "vpc"
+  tags = merge(local.tags, {
+    Name = "${local.name}-nat-${count.index}"
+  })
+}
+
+resource "aws_nat_gateway" "this" {
+  count         = local.nat_count
+  allocation_id = length(var.nat_eip_allocation_ids) > 0 ? var.nat_eip_allocation_ids[count.index] : aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.nat[count.index].id
+  tags = merge(local.tags, {
+    Name = "${local.name}-${count.index}"
+  })
+  depends_on = [aws_route_table_association.public]
+}
+
+resource "aws_route_table" "private" {
+  count  = local.nat_count
+  vpc_id = aws_vpc.this[0].id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this[count.index].id
+  }
+  tags = merge(local.tags, {
+    Name = "${local.name}-private-${count.index}"
   })
 }
 
 resource "aws_route_table_association" "private" {
-  count          = local.create_nat ? length(aws_subnet.this) : 0
+  count          = local.create_nat ? local.subnet_count : 0
   subnet_id      = aws_subnet.this[count.index].id
-  route_table_id = aws_route_table.private[0].id
+  route_table_id = aws_route_table.private[count.index % local.nat_count].id
 }

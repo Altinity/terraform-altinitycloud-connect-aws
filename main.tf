@@ -183,6 +183,6 @@ resource "aws_autoscaling_group" "this" {
     }
   }
 
-  # instances fail their launch hook if they boot before the NAT route exists
-  depends_on = [aws_route_table_association.private]
+  # instances fail their launch hook if they boot before the default route exists
+  depends_on = [aws_default_route_table.this, aws_route_table_association.private]
 }

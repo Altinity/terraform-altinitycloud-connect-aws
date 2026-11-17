@@ -13,9 +13,9 @@ output "autoscaling_group_name" {
   description = "Name of the Auto Scaling Group"
 }
 
-output "nat_public_ip" {
-  value       = local.create_nat ? aws_nat_gateway.this[0].public_ip : null
-  description = "Static public IP used by cloud-connect for outbound traffic, only set if \"enable_nat_gateway\" is true"
+output "nat_public_ips" {
+  value       = aws_nat_gateway.this[*].public_ip
+  description = "Static public IPs used by cloud-connect for outbound traffic, empty unless \"enable_nat_gateway\" is true"
 }
 
 output "resource_prefix" {
