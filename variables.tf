@@ -99,16 +99,6 @@ EOT
   }
 }
 
-variable "nat_eip_allocation_ids" {
-  description = <<EOT
-Allocation IDs of existing Elastic IPs to attach to the NAT gateways (e.g. eipalloc-0123456789abcdef0).
-When set, one NAT gateway is created per allocation ID and "nat_gateway_count" is ignored.
-If empty, this module allocates new Elastic IPs.
-EOT
-  type        = list(string)
-  default     = []
-}
-
 variable "use_default_subnets" {
   description = <<EOT
 Use default subnets to launch cloud-connect EC2 instance(s).

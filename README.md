@@ -117,9 +117,6 @@ module "altinitycloud_connect_aws" {
 
   # Optional: number of NAT gateways (one per availability zone), defaults to "replicas"
   # nat_gateway_count = 2
-
-  # Optional: use Elastic IPs allocated in advance (so they can be allowlisted before applying)
-  # nat_eip_allocation_ids = ["eipalloc-0123456789abcdef0"]
 }
 
 output "cloud_connect_egress_ips" {
@@ -178,7 +175,6 @@ module "altinitycloud_connect_aws" {
 | `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
 | `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) with static Elastic IPs (only when the module creates the VPC) | `bool` | `false` |
 | `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets). Instances only launch in zones with a NAT gateway | `number` | `replicas` |
-| `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID (allocates new ones if empty) | `list(string)` | `[]` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
