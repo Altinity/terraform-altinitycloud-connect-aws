@@ -4,8 +4,6 @@ locals {
   subnet_count = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
   nat_count = !local.create_nat ? 0 : min(local.subnet_count,
   length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : var.nat_gateway_count)
-  # with NAT, instances only launch in availability zones that have a NAT gateway
-  instance_subnet_ids = local.create_nat ? slice(aws_subnet.this[*].id, 0, local.nat_count) : aws_subnet.this[*].id
 }
 
 resource "aws_vpc" "this" {
@@ -111,7 +109,7 @@ resource "aws_nat_gateway" "this" {
   depends_on = [aws_route_table_association.nat]
 }
 
-# the first subnet uses the default route table (first NAT gateway)
+# subnets without their own NAT gateway use the default route table (first NAT gateway)
 resource "aws_route_table" "private" {
   count  = max(local.nat_count - 1, 0)
   vpc_id = aws_vpc.this[0].id

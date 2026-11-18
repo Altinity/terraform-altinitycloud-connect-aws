@@ -171,7 +171,7 @@ resource "aws_autoscaling_group" "this" {
 
   wait_for_capacity_timeout = "7m"
   vpc_zone_identifier = length(var.subnets) > 0 ? var.subnets : (
-    var.use_default_subnets ? data.aws_subnets.default[0].ids : local.instance_subnet_ids
+    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this[*].id
   )
 
   dynamic "tag" {
@@ -180,6 +180,21 @@ resource "aws_autoscaling_group" "this" {
       key                 = tag.key
       value               = tag.value
       propagate_at_launch = true
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = !var.enable_nat_gateway || local.create_vpc
+      error_message = "enable_nat_gateway requires the VPC to be created by this module: unset \"subnets\" and \"use_default_subnets\"."
+    }
+    precondition {
+      condition     = !local.create_nat || tonumber(split("/", var.cidr_block)[1]) <= 24
+      error_message = "enable_nat_gateway requires \"cidr_block\" to be /24 or larger."
+    }
+    precondition {
+      condition     = !local.create_nat || length(var.nat_eip_allocation_ids) <= local.subnet_count
+      error_message = "nat_eip_allocation_ids has more entries than subnets (availability zones, up to 3) created by this module."
     }
   }
 

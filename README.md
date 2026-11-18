@@ -17,7 +17,7 @@ If you're looking for a way to manage ClickHouse clusters via Terraform, see [te
 Before using this module, ensure you have:
 
 1. **AWS CLI** configured with appropriate credentials
-2. **Terraform** >= 1.0
+2. **Terraform** >= 1.2
 3. **Altinity.Cloud account** and access to the cloud-connect certificate
 
 ## Usage
@@ -99,7 +99,9 @@ module "altinitycloud_connect_aws" {
 
 ### Private Subnets with NAT Gateway
 
-Use this when AWS API calls must come from a known, static IP (e.g. an organization SCP that only allows approved egress IPs).
+Use this when AWS API calls must come from known, static IPs (e.g. an organization SCP that only allows approved egress IPs). cloud-connect runs without a public IP and all outbound traffic leaves through the NAT gateway(s).
+
+If the IPs have to be allowlisted before cloud-connect starts, allocate the Elastic IPs first, allowlist them, and pass them in `nat_eip_allocation_ids`. Otherwise the module allocates new ones and exposes them in the `nat_public_ips` output after the apply.
 
 ```terraform
 resource "altinitycloud_env_certificate" "this" {
@@ -112,20 +114,21 @@ module "altinitycloud_connect_aws" {
 
   pem = altinitycloud_env_certificate.this.pem
 
-  # cloud-connect runs without a public IP, all outbound traffic leaves through the NAT gateway(s)
   enable_nat_gateway = true
 
-  # Optional: number of NAT gateways, one per availability zone (default 1)
-  # nat_gateway_count = 2
+  # Elastic IPs allocated and allowlisted in advance, one NAT gateway per ID
+  nat_eip_allocation_ids = ["eipalloc-0123456789abcdef0"]
 
-  # Optional: use Elastic IPs allocated in advance, so they can be allowlisted before applying
-  # nat_eip_allocation_ids = ["eipalloc-0123456789abcdef0"]
+  # Without pre-allocated Elastic IPs: number of NAT gateways, one per availability zone (default 1)
+  # nat_gateway_count = 2
 }
 
 output "cloud_connect_egress_ips" {
   value = module.altinitycloud_connect_aws.nat_public_ips
 }
 ```
+
+Changing the Elastic IPs later replaces the NAT gateways and interrupts outbound traffic for a few minutes.
 
 ### Using Existing VPC
 
@@ -176,8 +179,8 @@ module "altinitycloud_connect_aws" {
 | `use_default_subnets` | Use default VPC subnets | `bool` | `false` |
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
 | `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
-| `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) with static Elastic IPs (only when the module creates the VPC) | `bool` | `false` |
-| `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets). Instances only launch in zones with a NAT gateway | `number` | `1` |
+| `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) with static Elastic IPs (requires the module-created VPC and a `cidr_block` of /24 or larger) | `bool` | `false` |
+| `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets) | `number` | `1` |
 | `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID (allocates new ones if empty) | `list(string)` | `[]` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
