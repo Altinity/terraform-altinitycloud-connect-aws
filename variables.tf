@@ -88,13 +88,14 @@ EOT
 variable "nat_gateway_count" {
   description = <<EOT
 Number of NAT gateways, one per availability zone (capped at the number of subnets created by this module).
-Decrease to reduce cost and the number of egress IPs, at the expense of cross-AZ traffic and AZ fault tolerance.
+cloud-connect EC2 instance(s) are only launched in availability zones that have a NAT gateway.
+Defaults to "replicas".
 EOT
   type        = number
-  default     = 3
+  default     = null
   validation {
-    condition     = var.nat_gateway_count >= 1 && var.nat_gateway_count <= 3
-    error_message = "nat_gateway_count must be between 1 and 3."
+    condition     = var.nat_gateway_count == null ? true : var.nat_gateway_count >= 1
+    error_message = "nat_gateway_count must be at least 1."
   }
 }
 

@@ -3,7 +3,9 @@ locals {
   create_nat   = local.create_vpc && var.enable_nat_gateway
   subnet_count = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
   nat_count = !local.create_nat ? 0 : min(local.subnet_count,
-  length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : var.nat_gateway_count)
+  length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : coalesce(var.nat_gateway_count, var.replicas))
+  # with NAT, instances only launch in availability zones that have a NAT gateway
+  instance_subnet_ids = local.create_nat ? slice(aws_subnet.this[*].id, 0, local.nat_count) : aws_subnet.this[*].id
 }
 
 resource "aws_vpc" "this" {
@@ -73,7 +75,7 @@ resource "aws_subnet" "nat" {
   })
 }
 
-resource "aws_route_table" "public" {
+resource "aws_route_table" "nat" {
   count  = local.create_nat ? 1 : 0
   vpc_id = aws_vpc.this[0].id
   route {
@@ -81,14 +83,14 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.this[0].id
   }
   tags = merge(local.tags, {
-    Name = "${local.name}-public"
+    Name = "${local.name}-nat"
   })
 }
 
-resource "aws_route_table_association" "public" {
+resource "aws_route_table_association" "nat" {
   count          = local.nat_count
   subnet_id      = aws_subnet.nat[count.index].id
-  route_table_id = aws_route_table.public[0].id
+  route_table_id = aws_route_table.nat[0].id
 }
 
 resource "aws_eip" "nat" {
@@ -106,23 +108,24 @@ resource "aws_nat_gateway" "this" {
   tags = merge(local.tags, {
     Name = "${local.name}-${count.index}"
   })
-  depends_on = [aws_route_table_association.public]
+  depends_on = [aws_route_table_association.nat]
 }
 
+# the first subnet uses the default route table (first NAT gateway)
 resource "aws_route_table" "private" {
-  count  = local.nat_count
+  count  = max(local.nat_count - 1, 0)
   vpc_id = aws_vpc.this[0].id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[count.index].id
+    nat_gateway_id = aws_nat_gateway.this[count.index + 1].id
   }
   tags = merge(local.tags, {
-    Name = "${local.name}-private-${count.index}"
+    Name = "${local.name}-private-${count.index + 1}"
   })
 }
 
 resource "aws_route_table_association" "private" {
-  count          = local.create_nat ? local.subnet_count : 0
-  subnet_id      = aws_subnet.this[count.index].id
-  route_table_id = aws_route_table.private[count.index % local.nat_count].id
+  count          = max(local.nat_count - 1, 0)
+  subnet_id      = aws_subnet.this[count.index + 1].id
+  route_table_id = aws_route_table.private[count.index].id
 }
