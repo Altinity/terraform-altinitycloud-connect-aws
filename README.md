@@ -128,7 +128,11 @@ output "cloud_connect_egress_ips" {
 }
 ```
 
-Changing the Elastic IPs later replaces the NAT gateways and interrupts outbound traffic for a few minutes.
+Things to know:
+
+- Only works with the VPC created by this module (not with `subnets` or `use_default_subnets`), and `cidr_block` must be /24 or larger. The plan fails otherwise.
+- One NAT gateway per availability zone, up to the number of subnets the module creates (3 at most). Instances can launch in any of those subnets; zones without their own NAT gateway use the first one.
+- Changing the Elastic IPs later replaces the NAT gateways and interrupts outbound traffic for a few minutes.
 
 ### Using Existing VPC
 
@@ -178,10 +182,10 @@ module "altinitycloud_connect_aws" {
 | `subnets` | List of subnet IDs for instances | `list(string)` | `[]` |
 | `use_default_subnets` | Use default VPC subnets | `bool` | `false` |
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
-| `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
+| `map_public_ip_on_launch` | Associate public IP on launch (ignored when `enable_nat_gateway` is true) | `bool` | `true` |
 | `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) with static Elastic IPs (requires the module-created VPC and a `cidr_block` of /24 or larger) | `bool` | `false` |
 | `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets) | `number` | `1` |
-| `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID (allocates new ones if empty) | `list(string)` | `[]` |
+| `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID, no more than the number of subnets (allocates new ones if empty) | `list(string)` | `[]` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
