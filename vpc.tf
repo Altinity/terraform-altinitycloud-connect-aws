@@ -2,7 +2,8 @@ locals {
   create_vpc   = !var.use_default_subnets && length(var.subnets) == 0
   create_nat   = local.create_vpc && var.enable_nat_gateway
   subnet_count = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
-  nat_count    = local.create_nat ? min(local.subnet_count, coalesce(var.nat_gateway_count, var.replicas)) : 0
+  nat_count = !local.create_nat ? 0 : min(local.subnet_count,
+  length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : var.nat_gateway_count)
   # with NAT, instances only launch in availability zones that have a NAT gateway
   instance_subnet_ids = local.create_nat ? slice(aws_subnet.this[*].id, 0, local.nat_count) : aws_subnet.this[*].id
 }
@@ -57,7 +58,7 @@ resource "aws_subnet" "this" {
   count                   = local.subnet_count
   vpc_id                  = aws_vpc.this[0].id
   cidr_block              = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 8, count.index + 1) : cidrsubnet(var.cidr_block, 2, count.index + 1)
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = !local.create_nat
   availability_zone       = data.aws_availability_zones.available[0].names[count.index]
   tags = merge(local.tags, {
     Name = "${local.name}-${count.index}"
@@ -93,7 +94,7 @@ resource "aws_route_table_association" "nat" {
 }
 
 resource "aws_eip" "nat" {
-  count  = local.nat_count
+  count  = length(var.nat_eip_allocation_ids) > 0 ? 0 : local.nat_count
   domain = "vpc"
   tags = merge(local.tags, {
     Name = "${local.name}-nat-${count.index}"
@@ -102,7 +103,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "this" {
   count         = local.nat_count
-  allocation_id = aws_eip.nat[count.index].id
+  allocation_id = length(var.nat_eip_allocation_ids) > 0 ? var.nat_eip_allocation_ids[count.index] : aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.nat[count.index].id
   tags = merge(local.tags, {
     Name = "${local.name}-${count.index}"

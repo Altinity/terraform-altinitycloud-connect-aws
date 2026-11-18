@@ -89,14 +89,24 @@ variable "nat_gateway_count" {
   description = <<EOT
 Number of NAT gateways, one per availability zone (capped at the number of subnets created by this module).
 cloud-connect EC2 instance(s) are only launched in availability zones that have a NAT gateway.
-Defaults to "replicas".
 EOT
   type        = number
-  default     = null
+  default     = 1
   validation {
-    condition     = var.nat_gateway_count == null ? true : var.nat_gateway_count >= 1
+    condition     = var.nat_gateway_count >= 1
     error_message = "nat_gateway_count must be at least 1."
   }
+}
+
+variable "nat_eip_allocation_ids" {
+  description = <<EOT
+Allocation IDs of existing Elastic IPs to attach to the NAT gateways (e.g. eipalloc-0123456789abcdef0),
+so the egress IPs can be allowlisted before applying.
+When set, one NAT gateway is created per allocation ID and "nat_gateway_count" is ignored.
+If empty, this module allocates new Elastic IPs.
+EOT
+  type        = list(string)
+  default     = []
 }
 
 variable "use_default_subnets" {
