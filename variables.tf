@@ -94,8 +94,8 @@ EOT
   type        = number
   default     = 1
   validation {
-    condition     = var.nat_gateway_count >= 1
-    error_message = "nat_gateway_count must be at least 1."
+    condition     = var.nat_gateway_count >= 1 && floor(var.nat_gateway_count) == var.nat_gateway_count
+    error_message = "nat_gateway_count must be a whole number, at least 1."
   }
 }
 
@@ -110,6 +110,10 @@ Changing the Elastic IPs replaces the NAT gateways and interrupts outbound traff
 EOT
   type        = list(string)
   default     = []
+  validation {
+    condition     = length(distinct(var.nat_eip_allocation_ids)) == length(var.nat_eip_allocation_ids)
+    error_message = "nat_eip_allocation_ids must not contain duplicates."
+  }
 }
 
 variable "use_default_subnets" {
