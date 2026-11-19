@@ -15,7 +15,11 @@ output "autoscaling_group_name" {
 
 output "nat_public_ips" {
   value       = aws_nat_gateway.this[*].public_ip
-  description = "Static public IPs used by cloud-connect for outbound traffic, empty unless \"enable_nat_gateway\" is true"
+  description = "Public IPs of the NAT gateway(s), empty unless \"enable_nat_gateway\" is true"
+  precondition {
+    condition     = !var.enable_nat_gateway || local.create_vpc
+    error_message = "enable_nat_gateway requires the VPC to be created by this module: unset \"subnets\" and \"use_default_subnets\"."
+  }
 }
 
 output "resource_prefix" {

@@ -76,7 +76,7 @@ variable "map_public_ip_on_launch" {
 
 variable "enable_nat_gateway" {
   description = <<EOT
-Route cloud-connect outbound traffic through NAT gateway(s) with static Elastic IPs (see "nat_public_ips" output).
+Route cloud-connect outbound traffic through NAT gateway(s) (see "nat_public_ips" output).
 cloud-connect EC2 instance(s) are launched without public IPs, regardless of "map_public_ip_on_launch".
 
 Requires the VPC to be created by this module ("subnets" is empty and "use_default_subnets" is false)
@@ -94,8 +94,8 @@ EOT
   type        = number
   default     = 1
   validation {
-    condition     = var.nat_gateway_count >= 1 && floor(var.nat_gateway_count) == var.nat_gateway_count
-    error_message = "nat_gateway_count must be a whole number, at least 1."
+    condition     = var.nat_gateway_count >= 1
+    error_message = "nat_gateway_count must be at least 1."
   }
 }
 

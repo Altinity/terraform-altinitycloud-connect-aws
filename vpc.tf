@@ -4,6 +4,7 @@ locals {
   subnet_count = local.create_vpc ? min(length(data.aws_availability_zones.available[0].names), 3) : 0
   nat_count = !local.create_nat ? 0 : min(local.subnet_count,
   length(var.nat_eip_allocation_ids) > 0 ? length(var.nat_eip_allocation_ids) : var.nat_gateway_count)
+  subnet_newbits = var.cidr_block == "10.0.0.0/16" ? 8 : 2
 }
 
 resource "aws_vpc" "this" {
@@ -55,7 +56,7 @@ data "aws_availability_zones" "available" {
 resource "aws_subnet" "this" {
   count                   = local.subnet_count
   vpc_id                  = aws_vpc.this[0].id
-  cidr_block              = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 8, count.index + 1) : cidrsubnet(var.cidr_block, 2, count.index + 1)
+  cidr_block              = cidrsubnet(var.cidr_block, local.subnet_newbits, count.index + 1)
   map_public_ip_on_launch = !local.create_nat
   availability_zone       = data.aws_availability_zones.available[0].names[count.index]
   tags = merge(local.tags, {
@@ -64,13 +65,20 @@ resource "aws_subnet" "this" {
 }
 
 resource "aws_subnet" "nat" {
-  count             = local.nat_count
-  vpc_id            = aws_vpc.this[0].id
-  cidr_block        = var.cidr_block == "10.0.0.0/16" ? cidrsubnet("10.0.0.0/16", 12, count.index) : cidrsubnet(var.cidr_block, 4, count.index)
+  count  = local.nat_count
+  vpc_id = aws_vpc.this[0].id
+  # carved out of block 0, which aws_subnet.this never uses
+  cidr_block        = cidrsubnet(cidrsubnet(var.cidr_block, local.subnet_newbits, 0), 2, count.index)
   availability_zone = data.aws_availability_zones.available[0].names[count.index]
   tags = merge(local.tags, {
     Name = "${local.name}-nat-${count.index}"
   })
+  lifecycle {
+    precondition {
+      condition     = tonumber(split("/", var.cidr_block)[1]) <= 24
+      error_message = "enable_nat_gateway requires \"cidr_block\" to be /24 or larger."
+    }
+  }
 }
 
 resource "aws_route_table" "nat" {
@@ -104,26 +112,32 @@ resource "aws_nat_gateway" "this" {
   allocation_id = length(var.nat_eip_allocation_ids) > 0 ? var.nat_eip_allocation_ids[count.index] : aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.nat[count.index].id
   tags = merge(local.tags, {
-    Name = "${local.name}-${count.index}"
+    Name = "${local.name}-nat-${count.index}"
   })
   depends_on = [aws_route_table_association.nat]
+  lifecycle {
+    precondition {
+      condition     = length(var.nat_eip_allocation_ids) <= local.subnet_count
+      error_message = "nat_eip_allocation_ids has more entries than subnets (availability zones, up to 3) created by this module."
+    }
+  }
 }
 
-# subnets without their own NAT gateway use the default route table (first NAT gateway)
-resource "aws_route_table" "private" {
-  count  = max(local.nat_count - 1, 0)
+# with more than one NAT gateway, each subnet gets its own route table; subnets without a NAT gateway in their AZ use the first one
+resource "aws_route_table" "this" {
+  count  = local.nat_count > 1 ? local.subnet_count : 0
   vpc_id = aws_vpc.this[0].id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[count.index + 1].id
+    nat_gateway_id = aws_nat_gateway.this[count.index < local.nat_count ? count.index : 0].id
   }
   tags = merge(local.tags, {
-    Name = "${local.name}-private-${count.index + 1}"
+    Name = "${local.name}-${count.index}"
   })
 }
 
-resource "aws_route_table_association" "private" {
-  count          = max(local.nat_count - 1, 0)
-  subnet_id      = aws_subnet.this[count.index + 1].id
-  route_table_id = aws_route_table.private[count.index].id
+resource "aws_route_table_association" "this" {
+  count          = local.nat_count > 1 ? local.subnet_count : 0
+  subnet_id      = aws_subnet.this[count.index].id
+  route_table_id = aws_route_table.this[count.index].id
 }

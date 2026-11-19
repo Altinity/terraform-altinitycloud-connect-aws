@@ -183,21 +183,6 @@ resource "aws_autoscaling_group" "this" {
     }
   }
 
-  lifecycle {
-    precondition {
-      condition     = !var.enable_nat_gateway || local.create_vpc
-      error_message = "enable_nat_gateway requires the VPC to be created by this module: unset \"subnets\" and \"use_default_subnets\"."
-    }
-    precondition {
-      condition     = !local.create_nat || tonumber(split("/", var.cidr_block)[1]) <= 24
-      error_message = "enable_nat_gateway requires \"cidr_block\" to be /24 or larger."
-    }
-    precondition {
-      condition     = !local.create_nat || length(var.nat_eip_allocation_ids) <= local.subnet_count
-      error_message = "nat_eip_allocation_ids has more entries than subnets (availability zones, up to 3) created by this module."
-    }
-  }
-
   # instances fail their launch hook if they boot before the default route exists
-  depends_on = [aws_default_route_table.this, aws_route_table_association.private]
+  depends_on = [aws_default_route_table.this, aws_route_table_association.this]
 }
