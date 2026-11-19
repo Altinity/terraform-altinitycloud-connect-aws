@@ -94,8 +94,8 @@ EOT
   type        = number
   default     = 1
   validation {
-    condition     = var.nat_gateway_count >= 1 && floor(var.nat_gateway_count) == var.nat_gateway_count
-    error_message = "nat_gateway_count must be a whole number, at least 1."
+    condition     = var.nat_gateway_count >= 1
+    error_message = "nat_gateway_count must be at least 1."
   }
 }
 
