@@ -89,7 +89,7 @@ EOT
 variable "nat_gateway_count" {
   description = <<EOT
 Number of NAT gateways, one per availability zone (capped at the number of subnets created by this module).
-Subnets in availability zones without a NAT gateway use the first one.
+cloud-connect EC2 instance(s) are launched only in availability zones with a NAT gateway.
 EOT
   type        = number
   default     = 1
