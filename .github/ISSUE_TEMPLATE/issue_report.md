@@ -12,7 +12,7 @@ A clear and concise description of the issue you're experiencing.
 
 **Environment**
 - Terraform version: [e.g. 1.9.0]
-- Module version: [e.g. 0.3.0]
+- Module version: [e.g. 0.4.0]
 - AWS provider version: [e.g. 5.70.0]
 - AWS region: [e.g. us-east-1]
 
@@ -32,7 +32,7 @@ Please provide your module configuration (remove any sensitive information):
 ```hcl
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.3.0"
+  version = "~> 0.4.0"
   # ...
 }
 ```

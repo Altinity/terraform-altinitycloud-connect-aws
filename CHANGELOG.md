@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.7...v0.4.0)
+
+### Added
+- Add `enable_nat_gateway` to launch cloud-connect without public IPs and route outbound traffic through NAT gateway(s) in the VPC created by this module. `nat_gateway_count` sets the number of NAT gateways (one per availability zone, default `1`), `nat_eip_allocation_ids` attaches existing Elastic IPs, and the `nat_public_ips` output exposes the egress IPs [#47](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/47).
+
+### Changed
+- Minimum Terraform version is now `1.2` [#47](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/47).
+
 ## [0.3.7](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.6...v0.3.7)
 
 ### Fixed

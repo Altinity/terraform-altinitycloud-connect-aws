@@ -7,7 +7,7 @@ Loads the PEM certificate from AWS SSM Parameter Store instead of a local file.
 ```terraform
 module "altinitycloud_connect_aws" {
   source  = "altinity/connect-aws/altinitycloud"
-  version = "~> 0.3.0"
+  version = "~> 0.4.0"
 
   pem_ssm_parameter_name = "/altinity/cloud-connect/pem"
 }
