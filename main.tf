@@ -106,7 +106,7 @@ resource "aws_launch_template" "this" {
     name = aws_iam_instance_profile.this.name
   }
   network_interfaces {
-    associate_public_ip_address = var.map_public_ip_on_launch
+    associate_public_ip_address = var.map_public_ip_on_launch && !local.create_nat
     security_groups             = length(var.ec2_security_group_ids) > 0 ? var.ec2_security_group_ids : null
   }
 
@@ -170,8 +170,11 @@ resource "aws_autoscaling_group" "this" {
   }
 
   wait_for_capacity_timeout = "7m"
+  # with NAT, only the subnets with a NAT gateway in their AZ are used, to avoid cross-AZ traffic
   vpc_zone_identifier = length(var.subnets) > 0 ? var.subnets : (
-    var.use_default_subnets ? data.aws_subnets.default[0].ids : aws_subnet.this[*].id
+    var.use_default_subnets ? data.aws_subnets.default[0].ids : (
+      local.create_nat ? slice(aws_subnet.this[*].id, 0, local.nat_count) : aws_subnet.this[*].id
+    )
   )
 
   dynamic "tag" {
@@ -182,4 +185,7 @@ resource "aws_autoscaling_group" "this" {
       propagate_at_launch = true
     }
   }
+
+  # instances fail their launch hook if they boot before the default route exists
+  depends_on = [aws_default_route_table.this, aws_route_table_association.this]
 }

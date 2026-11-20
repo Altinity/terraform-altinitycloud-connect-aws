@@ -17,7 +17,7 @@ If you're looking for a way to manage ClickHouse clusters via Terraform, see [te
 Before using this module, ensure you have:
 
 1. **AWS CLI** configured with appropriate credentials
-2. **Terraform** >= 1.0
+2. **Terraform** >= 1.2
 3. **Altinity.Cloud account** and access to the cloud-connect certificate
 
 ## Usage
@@ -97,6 +97,32 @@ module "altinitycloud_connect_aws" {
 }
 ```
 
+### Private Subnets with NAT Gateway
+
+Launches cloud-connect without public IPs and routes outbound traffic through NAT gateway(s). Requires the VPC to be created by this module.
+
+```terraform
+resource "altinitycloud_env_certificate" "this" {
+  env_name = "my-env"
+}
+
+module "altinitycloud_connect_aws" {
+  source  = "altinity/connect-aws/altinitycloud"
+  version = "~> 0.4.0"
+
+  pem = altinitycloud_env_certificate.this.pem
+
+  enable_nat_gateway = true
+
+  # optional: use existing Elastic IPs (e.g. already allowlisted), one NAT gateway per ID
+  # nat_eip_allocation_ids = ["eipalloc-0123456789abcdef0"]
+}
+
+output "cloud_connect_egress_ips" {
+  value = module.altinitycloud_connect_aws.nat_public_ips
+}
+```
+
 ### Using Existing VPC
 
 ```terraform
@@ -145,7 +171,10 @@ module "altinitycloud_connect_aws" {
 | `subnets` | List of subnet IDs for instances | `list(string)` | `[]` |
 | `use_default_subnets` | Use default VPC subnets | `bool` | `false` |
 | `cidr_block` | CIDR block for new VPC | `string` | `"10.0.0.0/16"` |
-| `map_public_ip_on_launch` | Associate public IP on launch when creating VPC | `bool` | `true` |
+| `map_public_ip_on_launch` | Associate public IP on launch (ignored when `enable_nat_gateway` is true) | `bool` | `true` |
+| `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) (requires the module-created VPC and a `cidr_block` of /24 or larger) | `bool` | `false` |
+| `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets) | `number` | `1` |
+| `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID, no more than the number of subnets (allocates new ones if empty) | `list(string)` | `[]` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
@@ -173,6 +202,7 @@ For a complete list of variables, see [variables.tf](variables.tf).
 |------|-------------|
 | `resource_prefix` | AWS resource prefix (when permission boundary enabled) |
 | `permissions_boundary_policy_arn` | ARN of the permission boundary policy |
+| `nat_public_ips` | Public IPs of the NAT gateway(s) (when `enable_nat_gateway` is true) |
 
 ## Troubleshooting
 

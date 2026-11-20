@@ -13,6 +13,15 @@ output "autoscaling_group_name" {
   description = "Name of the Auto Scaling Group"
 }
 
+output "nat_public_ips" {
+  value       = aws_nat_gateway.this[*].public_ip
+  description = "Public IPs of the NAT gateway(s), empty unless \"enable_nat_gateway\" is true"
+  precondition {
+    condition     = !var.enable_nat_gateway || local.create_vpc
+    error_message = "enable_nat_gateway requires the VPC to be created by this module: unset \"subnets\" and \"use_default_subnets\"."
+  }
+}
+
 output "resource_prefix" {
   value       = var.enable_permissions_boundary ? local.resource_prefix : null
   description = "AWS resource prefix, only set if permission boundary is enabled"

@@ -74,6 +74,48 @@ variable "map_public_ip_on_launch" {
   default     = true
 }
 
+variable "enable_nat_gateway" {
+  description = <<EOT
+Route cloud-connect outbound traffic through NAT gateway(s) (see "nat_public_ips" output).
+cloud-connect EC2 instance(s) are launched without public IPs, regardless of "map_public_ip_on_launch".
+
+Requires the VPC to be created by this module ("subnets" is empty and "use_default_subnets" is false)
+and "cidr_block" to be /24 or larger.
+EOT
+  type        = bool
+  default     = false
+}
+
+variable "nat_gateway_count" {
+  description = <<EOT
+Number of NAT gateways, one per availability zone (capped at the number of subnets created by this module).
+cloud-connect EC2 instance(s) are launched only in availability zones with a NAT gateway.
+EOT
+  type        = number
+  default     = 1
+  validation {
+    condition     = var.nat_gateway_count >= 1
+    error_message = "nat_gateway_count must be at least 1."
+  }
+}
+
+variable "nat_eip_allocation_ids" {
+  description = <<EOT
+Allocation IDs of existing Elastic IPs to attach to the NAT gateways (e.g. eipalloc-0123456789abcdef0),
+so the egress IPs can be allowlisted before applying.
+When set, one NAT gateway is created per allocation ID and "nat_gateway_count" is ignored.
+If empty, this module allocates new Elastic IPs.
+
+Changing the Elastic IPs replaces the NAT gateways and interrupts outbound traffic for a few minutes.
+EOT
+  type        = list(string)
+  default     = []
+  validation {
+    condition     = length(distinct(var.nat_eip_allocation_ids)) == length(var.nat_eip_allocation_ids)
+    error_message = "nat_eip_allocation_ids must not contain duplicates."
+  }
+}
+
 variable "use_default_subnets" {
   description = <<EOT
 Use default subnets to launch cloud-connect EC2 instance(s).
