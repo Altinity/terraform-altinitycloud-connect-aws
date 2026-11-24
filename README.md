@@ -196,6 +196,18 @@ module "altinitycloud_connect_aws" {
 
 For a complete list of variables, see [variables.tf](variables.tf).
 
+### Permissions Boundary Prerequisites
+
+With `enable_permissions_boundary = true`, AWS cannot always create service-linked roles on demand. The first node group, for example, fails with `missing permissions for iam:GetRole` on `AWSServiceRoleForAmazonEKSNodegroup`. Create the roles once per account before creating the environment:
+
+```sh
+aws iam create-service-linked-role --aws-service-name eks.amazonaws.com
+aws iam create-service-linked-role --aws-service-name eks-nodegroup.amazonaws.com
+aws iam create-service-linked-role --aws-service-name elasticloadbalancing.amazonaws.com
+```
+
+A "has been taken" error means the role already exists, as it does in accounts that have run EKS before.
+
 ## Outputs
 
 | Name | Description |
@@ -282,7 +294,7 @@ Connect via SSM and run the log commands above. On a standalone instance, `compl
 
 ### Permission errors
 
-Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`. When `enable_permissions_boundary` is true, the instance role also needs `autoscaling:CompleteLifecycleAction` on the ASG (scoped by the `altinity:cloud/env` tag) and `ssm:GetParameter` on the PEM parameter.
+Ensure the AWS credentials used to apply this module have sufficient permissions and verify the IAM role policies attached to `aws_iam_role.this`. When `enable_permissions_boundary` is true, the instance role also needs `autoscaling:CompleteLifecycleAction` on the ASG (scoped by the `altinity:cloud/env` tag) and `ssm:GetParameter` on the PEM parameter. For `missing permissions for iam:GetRole` on a service-linked role, see [Permissions Boundary Prerequisites](#permissions-boundary-prerequisites).
 
 ## Support
 
