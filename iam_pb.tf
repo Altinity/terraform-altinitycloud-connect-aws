@@ -394,11 +394,36 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 }
 
+locals {
+  managed_policy_max_size = 6144
+
+  pb_json     = one(data.aws_iam_policy_document.permissions-boundary-policy[*].json)
+  pb_document = local.pb_json == null ? null : jsondecode(local.pb_json)
+
+  pb_statements_without_sid = [
+    for s in try(local.pb_document.Statement, []) : { for k, v in s : k => v if k != "Sid" }
+  ]
+  pb_json_without_sid = local.pb_document == null ? null : jsonencode(
+    merge(local.pb_document, { Statement = local.pb_statements_without_sid })
+  )
+
+  pb_fits = local.pb_json == null || length(jsonencode(local.pb_document)) <= local.managed_policy_max_size
+
+  # Sids are dropped only when the policy would not fit in a managed policy otherwise
+  permissions_boundary_json = local.pb_fits ? local.pb_json : local.pb_json_without_sid
+}
+
 resource "aws_iam_policy" "altinity-permission-boundary" {
   count       = var.enable_permissions_boundary ? 1 : 0
   name        = local.permissions_boundary_policy_name
   description = "Altinity permission boundary for env ${local.env_name}"
-  policy      = one(data.aws_iam_policy_document.permissions-boundary-policy).json
+  policy      = local.permissions_boundary_json
+  lifecycle {
+    precondition {
+      condition     = length(replace(local.permissions_boundary_json, "/\\s/", "")) <= local.managed_policy_max_size
+      error_message = "The permissions boundary policy exceeds the AWS managed policy limit of ${local.managed_policy_max_size} characters. Reduce the number of \"external_buckets\"."
+    }
+  }
   tags = merge(
     local.tags,
     {
