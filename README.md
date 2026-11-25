@@ -189,7 +189,7 @@ module "altinitycloud_connect_aws" {
 | `enable_permissions_boundary` | Enable IAM permissions boundary | `bool` | `false` |
 | `region` | Override AWS region for lookups | `string` | `""` |
 | `aws_account_id` | Override AWS account ID for lookups | `string` | `""` |
-| `external_buckets` | Additional S3 buckets to allow access | `list(string)` | `[]` |
+| `external_buckets` | Additional S3 buckets to allow access. Wildcards are supported (e.g. `my-prefix-*`) | `list(string)` | `[]` |
 | `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
 | `imds_hop_limit` | IMDSv2 PUT response hop limit for EC2 instances (1-64). If `null`, the account-level IMDS default or the AMI default applies | `number` | `null` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
@@ -208,6 +208,16 @@ aws iam create-service-linked-role --aws-service-name elasticloadbalancing.amazo
 ```
 
 A "has been taken" error means the role already exists, as it does in accounts that have run EKS before.
+
+### Permissions Boundary Size Limit
+
+AWS caps managed policies at 6144 characters and a role can only have one permissions boundary, so the policy cannot be split. Each entry in `external_buckets` adds two ARNs to it. If the limit is reached, replace individual buckets with a wildcard pattern:
+
+```hcl
+external_buckets = ["my-prefix-*"]
+```
+
+A pattern allows access to every bucket that matches it, so keep it as narrow as possible.
 
 ## Outputs
 

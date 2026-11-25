@@ -421,7 +421,7 @@ resource "aws_iam_policy" "altinity-permission-boundary" {
   lifecycle {
     precondition {
       condition     = length(replace(local.permissions_boundary_json, "/\\s/", "")) <= local.managed_policy_max_size
-      error_message = "The permissions boundary policy exceeds the AWS managed policy limit of ${local.managed_policy_max_size} characters. Reduce the number of \"external_buckets\"."
+      error_message = "The permissions boundary policy exceeds the AWS managed policy limit of ${local.managed_policy_max_size} characters. Reduce the number of \"external_buckets\" or replace them with a wildcard pattern (e.g. \"my-prefix-*\")."
     }
   }
   tags = merge(
