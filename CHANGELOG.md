@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.4.1...v0.4.2)
+
+### Added
+- Add `imds_hop_limit` to set the IMDSv2 PUT response hop limit on the cloud-connect launch template. Unset by default, which keeps the account-level IMDS default or the AMI default [#48](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/48).
+
+### Fixed
+- Keep the permissions boundary under the AWS managed policy size limit of 6144 characters, which long env names combined with `external_buckets` could exceed (`LimitExceeded: Cannot exceed quota for PolicySize: 6144`). Statement IDs (`Sid`) are dropped from the rendered policy only when it would not fit otherwise, with no change to the permissions; deployments whose policy fits see no diff. A precondition reports the limit with a clear message if the policy still doesn't fit [#49](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/49).
+
 ## [0.4.0](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.3.7...v0.4.0)
 
 ### Added
