@@ -188,5 +188,5 @@ resource "aws_autoscaling_group" "this" {
   }
 
   # instances fail their launch hook if they boot before the default route exists
-  depends_on = [aws_default_route_table.this, aws_route_table_association.this]
+  depends_on = [aws_default_route_table.this, aws_route_table_association.this, aws_route.default, aws_route.this]
 }
