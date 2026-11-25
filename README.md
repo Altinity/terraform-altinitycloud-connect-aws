@@ -174,8 +174,8 @@ module "altinitycloud_connect_aws" {
 | `map_public_ip_on_launch` | Associate public IP on launch (ignored when `enable_nat_gateway` is true) | `bool` | `true` |
 | `enable_nat_gateway` | Route outbound traffic through NAT gateway(s) (requires the module-created VPC and a `cidr_block` of /24 or larger) | `bool` | `false` |
 | `nat_gateway_count` | Number of NAT gateways, one per availability zone (capped at the number of subnets) | `number` | `1` |
-| `standalone_routes` | Manage the `0.0.0.0/0` routes of the module-created VPC as standalone `aws_route` resources, leaving routes added by other services alone (see [Standalone Routes](#standalone-routes)) | `bool` | `false` |
 | `nat_eip_allocation_ids` | Existing Elastic IP allocation IDs, one NAT gateway per ID, no more than the number of subnets (allocates new ones if empty) | `list(string)` | `[]` |
+| `standalone_routes` | Manage the `0.0.0.0/0` routes of the module-created VPC as standalone `aws_route` resources, leaving routes added by other services alone (see [Standalone Routes](#standalone-routes)) | `bool` | `false` |
 | `instance_type` | EC2 instance type | `string` | `"t3.micro"` |
 | `root_volume_size` | Size (GiB) of the root EBS volume | `number` | `20` |
 | `root_volume_type` | EBS volume type for the root volume | `string` | `"gp3"` |
@@ -202,7 +202,7 @@ For a complete list of variables, see [variables.tf](variables.tf).
 
 By default the module-created VPC defines its routes inline, so Terraform removes any route it didn't create. Services that add their own routes to the VPC route tables (e.g. GuardDuty Runtime Monitoring) then show up as drift on every plan. Set `standalone_routes = true` to manage only the module's `0.0.0.0/0` routes and leave the rest alone.
 
-New deployments need nothing else. On an existing deployment the routes already exist, so import them before applying (Terraform >= 1.5), otherwise the apply fails with `RouteAlreadyExists`:
+New deployments need nothing else. On an existing deployment the routes already exist, so import them before applying (Terraform >= 1.5), otherwise the apply fails because the route already exists:
 
 ```terraform
 import {
@@ -211,7 +211,7 @@ import {
 }
 ```
 
-With `enable_nat_gateway`, also import `aws_route.nat[0]` (the `<name>-nat` route table) and, with more than one NAT gateway, `aws_route.this[N]` for each `<name>-N` route table. `terraform plan` must show the routes as imported, not created.
+With `enable_nat_gateway`, also import `aws_route.nat[0]` (the `<name>-nat` route table) and, with more than one NAT gateway, `aws_route.this[N]` for each `<name>-N` route table.
 
 To go back to inline routes, run `terraform state rm` on the `aws_route` resources before setting it to `false`; otherwise Terraform deletes the routes.
 
