@@ -17,6 +17,9 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
     sid = "SSM"
     actions = [
       "ssmmessages:*",
+      # aws:configurePackage (e.g. GuardDuty agent); no resource-level support, so the env tag condition can't match
+      "ssm:GetManifest",
+      "ssm:PutConfigurePackageResult",
     ]
     resources = ["*"]
   }
