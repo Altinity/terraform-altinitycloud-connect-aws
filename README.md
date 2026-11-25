@@ -191,6 +191,7 @@ module "altinitycloud_connect_aws" {
 | `aws_account_id` | Override AWS account ID for lookups | `string` | `""` |
 | `external_buckets` | Additional S3 buckets to allow access | `list(string)` | `[]` |
 | `require_imdsv2` | Require IMDSv2 for EC2 instances | `bool` | `false` |
+| `imds_hop_limit` | IMDSv2 PUT response hop limit for EC2 instances (1-64). If `null`, the account-level IMDS default or the AMI default applies | `number` | `null` |
 | `restricted_iam_permissions` | Use scoped IAM permissions | `bool` | `false` |
 | `create_user_permissions` | Create user permissions for the IAM role | `bool` | `true` |
 
