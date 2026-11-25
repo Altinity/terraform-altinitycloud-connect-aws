@@ -226,6 +226,16 @@ variable "require_imdsv2" {
   default     = false
 }
 
+variable "imds_hop_limit" {
+  type        = number
+  description = "IMDSv2 PUT response hop limit for EC2 instances (1-64). If null, the account-level IMDS default or the AMI default applies."
+  default     = null
+  validation {
+    condition     = coalesce(var.imds_hop_limit, 1) >= 1 && coalesce(var.imds_hop_limit, 1) <= 64
+    error_message = "imds_hop_limit must be between 1 and 64."
+  }
+}
+
 variable "restricted_iam_permissions" {
   type        = bool
   description = "Use scoped IAM permissions instead of IAMFullAccess. When true, IAM user operations are limited to *-clickhouse-backup users only."

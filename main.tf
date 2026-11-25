@@ -111,8 +111,9 @@ resource "aws_launch_template" "this" {
   }
 
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = var.require_imdsv2 ? "required" : "optional"
+    http_endpoint               = "enabled"
+    http_tokens                 = var.require_imdsv2 ? "required" : "optional"
+    http_put_response_hop_limit = var.imds_hop_limit
   }
 
   block_device_mappings {
