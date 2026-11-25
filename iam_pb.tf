@@ -105,29 +105,15 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "EKSAuth"
+    sid = "EKS"
     actions = [
-      "eks-auth:AssumeRoleForPodIdentity",
-      "eks:DescribeCluster",
-      "eks:ListNodegroups"
+      "eks:*",
+      "eks-auth:*",
     ]
     resources = [
-      "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}"
-    ]
-  }
-
-  statement {
-    sid = "EKSAccessEntries"
-    actions = [
-      "eks:DescribeAccessEntry",
-      "eks:DeleteAccessEntry",
-      "eks:ListAssociatedAccessPolicies",
-      "eks:AssociateAccessPolicy",
-      "eks:DisassociateAccessPolicy",
-      "eks:TagResource",
-    ]
-    resources = [
-      "arn:aws:eks:${local.region}:${local.account_id}:access-entry/${local.resource_prefix}/*"
+      "arn:aws:eks:${local.region}:${local.account_id}:cluster/${local.resource_prefix}",
+      "arn:aws:eks:${local.region}:${local.account_id}:access-entry/${local.resource_prefix}/*",
+      "arn:aws:eks:${local.region}:${local.account_id}:nodegroup/${local.resource_prefix}/*",
     ]
   }
 
@@ -156,14 +142,6 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
       "iam:Get*",
     ]
     resources = ["arn:aws:iam::${local.account_id}:oidc-provider/oidc.eks.${local.region}.amazonaws.com/id/*"]
-  }
-
-  statement {
-    sid = "EKSNG"
-    actions = [
-      "eks:DescribeNodegroup",
-    ]
-    resources = ["arn:aws:eks:${local.region}:${local.account_id}:nodegroup/${local.resource_prefix}/*"]
   }
 
   statement {
@@ -280,20 +258,10 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
   }
 
   statement {
-    sid = "AssumeAndPassEnvRoles"
-    actions = [
-      "sts:AssumeRole*",
-      "iam:PassRole",
-    ]
-    resources = [
-      "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*"
-    ]
-  }
-
-  statement {
     sid = "IAM"
     actions = [
-      "iam:*"
+      "iam:*",
+      "sts:AssumeRole*",
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${local.resource_prefix}*",
