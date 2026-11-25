@@ -1,4 +1,4 @@
-# Hardened: IMDSv2 required with hop limit 1, restricted IAM, no Altinity access, and custom
+# Hardened: IMDSv2 required, restricted IAM, no Altinity access, and custom
 # security groups. Suitable for high-security environments.
 
 provider "aws" {
@@ -16,7 +16,6 @@ module "altinitycloud_connect_aws" {
   pem = altinitycloud_env_certificate.this.pem
 
   require_imdsv2             = true
-  imds_hop_limit             = 1
   restricted_iam_permissions = true
   allow_altinity_access      = false
 
