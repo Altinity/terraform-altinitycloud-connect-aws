@@ -202,16 +202,32 @@ For a complete list of variables, see [variables.tf](variables.tf).
 
 By default the module-created VPC defines its routes inline, so Terraform removes any route it didn't create. Services that add their own routes to the VPC route tables (e.g. GuardDuty Runtime Monitoring) then show up as drift on every plan. Set `standalone_routes = true` to manage only the module's `0.0.0.0/0` routes and leave the rest alone.
 
-New deployments need nothing else. On an existing deployment the routes already exist, so import them before applying (Terraform >= 1.5), otherwise the apply fails because the route already exists:
+New deployments need nothing else. On an existing deployment the routes already exist, so import them before applying (Terraform >= 1.5), otherwise the apply fails because the route already exists.
+
+Each route is imported with the ID `<route-table-id>_0.0.0.0/0`. Which routes exist depends on the NAT configuration:
+
+| Route to import | Route table | When |
+|-----------------|-------------|------|
+| `aws_route.default[0]` | `aws_default_route_table.this[0]` | Always |
+| `aws_route.nat[0]` | `aws_route_table.nat[0]` | `enable_nat_gateway` is true |
+| `aws_route.this[N]` | `aws_route_table.this[N]` | More than one NAT gateway, one per subnet |
+
+Get each route table ID from the state before enabling the variable:
+
+```sh
+terraform state show 'module.altinitycloud_connect_aws.aws_default_route_table.this[0]' | grep -w id
+```
+
+Then add one `import` block per route next to the module and apply:
 
 ```terraform
 import {
   to = module.altinitycloud_connect_aws.aws_route.default[0]
-  id = "<default-route-table-id>_0.0.0.0/0"
+  id = "rtb-0123456789abcdef0_0.0.0.0/0"
 }
 ```
 
-With `enable_nat_gateway`, also import `aws_route.nat[0]` (the `<name>-nat` route table) and, with more than one NAT gateway, `aws_route.this[N]` for each `<name>-N` route table.
+The plan must show the routes as imported and nothing to add or destroy. The `import` blocks can be removed after the apply.
 
 To go back to inline routes, run `terraform state rm` on the `aws_route` resources before setting it to `false`; otherwise Terraform deletes the routes.
 
