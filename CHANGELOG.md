@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.4.2...v0.4.3)
+
+### Added
+- Add `standalone_routes` to manage the `0.0.0.0/0` routes of the module-created VPC as standalone `aws_route` resources, so routes added by other services (e.g. GuardDuty Runtime Monitoring) are no longer removed on every apply. Disabled by default; enabling it on an existing deployment requires importing the existing routes first, see [Standalone Routes](README.md#standalone-routes) [#53](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/53).
+
+### Fixed
+- Allow `ssm:GetManifest` and `ssm:PutConfigurePackageResult` in the permissions boundary. SSM documents with an `aws:configurePackage` step, such as the GuardDuty Runtime Monitoring agent install, were denied with `no permissions boundary allows the ssm:GetManifest action` [#52](https://github.com/Altinity/terraform-altinitycloud-connect-aws/pull/52).
+
 ## [0.4.2](https://github.com/Altinity/terraform-altinitycloud-connect-aws/compare/v0.4.1...v0.4.2)
 
 ### Added
