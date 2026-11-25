@@ -116,6 +116,17 @@ EOT
   }
 }
 
+variable "standalone_routes" {
+  description = <<EOT
+Manage the 0.0.0.0/0 routes of the module-created VPC as standalone "aws_route" resources instead of inline,
+so routes added to the route tables by other services (e.g. GuardDuty Runtime Monitoring) are left alone.
+
+Enabling it on an existing deployment requires importing the existing routes first (see README).
+EOT
+  type        = bool
+  default     = false
+}
+
 variable "use_default_subnets" {
   description = <<EOT
 Use default subnets to launch cloud-connect EC2 instance(s).

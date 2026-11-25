@@ -23,12 +23,23 @@ resource "aws_default_route_table" "this" {
   count                  = local.create_vpc ? 1 : 0
   default_route_table_id = aws_vpc.this[0].default_route_table_id
   # with NAT, the default route must not lead to the IGW: a subnet that loses its association fails closed
-  route {
-    cidr_block     = "0.0.0.0/0"
-    gateway_id     = local.create_nat ? null : aws_internet_gateway.this[0].id
-    nat_gateway_id = local.create_nat ? aws_nat_gateway.this[0].id : null
+  dynamic "route" {
+    for_each = var.standalone_routes ? [] : [1]
+    content {
+      cidr_block     = "0.0.0.0/0"
+      gateway_id     = local.create_nat ? null : aws_internet_gateway.this[0].id
+      nat_gateway_id = local.create_nat ? aws_nat_gateway.this[0].id : null
+    }
   }
   tags = local.tags
+}
+
+resource "aws_route" "default" {
+  count                  = local.create_vpc && var.standalone_routes ? 1 : 0
+  route_table_id         = aws_default_route_table.this[0].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = local.create_nat ? null : aws_internet_gateway.this[0].id
+  nat_gateway_id         = local.create_nat ? aws_nat_gateway.this[0].id : null
 }
 
 resource "aws_default_security_group" "default" {
@@ -84,13 +95,23 @@ resource "aws_subnet" "nat" {
 resource "aws_route_table" "nat" {
   count  = local.create_nat ? 1 : 0
   vpc_id = aws_vpc.this[0].id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this[0].id
+  dynamic "route" {
+    for_each = var.standalone_routes ? [] : [1]
+    content {
+      cidr_block = "0.0.0.0/0"
+      gateway_id = aws_internet_gateway.this[0].id
+    }
   }
   tags = merge(local.tags, {
     Name = "${local.name}-nat"
   })
+}
+
+resource "aws_route" "nat" {
+  count                  = local.create_nat && var.standalone_routes ? 1 : 0
+  route_table_id         = aws_route_table.nat[0].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this[0].id
 }
 
 resource "aws_route_table_association" "nat" {
@@ -114,7 +135,7 @@ resource "aws_nat_gateway" "this" {
   tags = merge(local.tags, {
     Name = "${local.name}-nat-${count.index}"
   })
-  depends_on = [aws_route_table_association.nat]
+  depends_on = [aws_route_table_association.nat, aws_route.nat]
   lifecycle {
     precondition {
       condition     = length(var.nat_eip_allocation_ids) <= local.subnet_count
@@ -127,13 +148,23 @@ resource "aws_nat_gateway" "this" {
 resource "aws_route_table" "this" {
   count  = local.nat_count > 1 ? local.subnet_count : 0
   vpc_id = aws_vpc.this[0].id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[count.index < local.nat_count ? count.index : 0].id
+  dynamic "route" {
+    for_each = var.standalone_routes ? [] : [1]
+    content {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.this[count.index < local.nat_count ? count.index : 0].id
+    }
   }
   tags = merge(local.tags, {
     Name = "${local.name}-${count.index}"
   })
+}
+
+resource "aws_route" "this" {
+  count                  = var.standalone_routes ? length(aws_route_table.this) : 0
+  route_table_id         = aws_route_table.this[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this[count.index < local.nat_count ? count.index : 0].id
 }
 
 resource "aws_route_table_association" "this" {
