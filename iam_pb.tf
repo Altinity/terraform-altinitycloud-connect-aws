@@ -395,15 +395,22 @@ data "aws_iam_policy_document" "permissions-boundary-policy" {
 }
 
 locals {
-  permissions_boundary_document = (var.enable_permissions_boundary ?
-  jsondecode(one(data.aws_iam_policy_document.permissions-boundary-policy).json) : null)
-  permissions_boundary_fits = var.enable_permissions_boundary ? length(jsonencode(local.permissions_boundary_document)) <= 6144 : true
-  # managed policies are capped at 6144 characters: Sids are dropped from the rendered policy only when it doesn't fit
-  permissions_boundary_json = (!var.enable_permissions_boundary ? null : local.permissions_boundary_fits ?
-    one(data.aws_iam_policy_document.permissions-boundary-policy).json :
-    jsonencode(merge(local.permissions_boundary_document, {
-      Statement = [for s in local.permissions_boundary_document.Statement : { for k, v in s : k => v if k != "Sid" }]
-  })))
+  managed_policy_max_size = 6144
+
+  pb_json     = one(data.aws_iam_policy_document.permissions-boundary-policy[*].json)
+  pb_document = local.pb_json == null ? null : jsondecode(local.pb_json)
+
+  pb_statements_without_sid = [
+    for s in try(local.pb_document.Statement, []) : { for k, v in s : k => v if k != "Sid" }
+  ]
+  pb_json_without_sid = local.pb_document == null ? null : jsonencode(
+    merge(local.pb_document, { Statement = local.pb_statements_without_sid })
+  )
+
+  pb_fits = local.pb_json == null || length(jsonencode(local.pb_document)) <= local.managed_policy_max_size
+
+  # Sids are dropped only when the policy would not fit in a managed policy otherwise
+  permissions_boundary_json = local.pb_fits ? local.pb_json : local.pb_json_without_sid
 }
 
 resource "aws_iam_policy" "altinity-permission-boundary" {
@@ -413,8 +420,8 @@ resource "aws_iam_policy" "altinity-permission-boundary" {
   policy      = local.permissions_boundary_json
   lifecycle {
     precondition {
-      condition     = length(replace(local.permissions_boundary_json, "/\\s/", "")) <= 6144
-      error_message = "The permissions boundary policy exceeds the AWS managed policy limit of 6144 characters. Reduce the number of \"external_buckets\"."
+      condition     = length(replace(local.permissions_boundary_json, "/\\s/", "")) <= local.managed_policy_max_size
+      error_message = "The permissions boundary policy exceeds the AWS managed policy limit of ${local.managed_policy_max_size} characters. Reduce the number of \"external_buckets\"."
     }
   }
   tags = merge(
